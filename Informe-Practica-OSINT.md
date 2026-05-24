@@ -33,19 +33,33 @@ Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache
 
 Identificar y caracterizar la organización seleccionada como blanco de reconocimiento, justificando su idoneidad para un ejercicio de enumeración DNS.
 
-### Descripción de Grupo GEE
+### Presentación del objetivo
 
-**Grupo GEE** es un conjunto empresarial de tamaño mediano-grande con actividad en el sector electromédico, distribución y servicios digitales asociados. Dispone de presencia pública en Internet mediante varios dominios registrados, lo que ofrece superficie suficiente para aplicar las técnicas de la práctica.
+Para esta práctica se analiza **GEE** (*Grupo Empresarial Electromédico*), organización en la que el autor desarrolla su actividad profesional. El grupo se presenta públicamente como especialista en **electromedicina e ingeniería sanitaria**, con presencia internacional. El dominio principal expuesto en Internet es **`grupo-gee.com`**, aunque la huella digital real se distribuye entre dominios históricos, filiales y servicios corporativos asociados.
+
+### Información general de la empresa (OSINT)
+
+La fase inicial de OSINT muestra que GEE **no opera como una única entidad monolítica**, sino como un **conglomerado corporativo**:
+
+- **Núcleo del grupo:** **MANTELEC, S.A.**, **ASIME, S.A.** e **IBERMAN, S.A.** (esta última asociada al dominio `ibermansa.com`), con actividad transversal a nivel nacional y participación habitual en licitaciones públicas, a menudo en **Uniones Temporales de Empresas (UTE)**.
+- **Filiales territoriales:** por ejemplo **Euskalman S.L.** (País Vasco), sin dominio público propio identificado en esta fase.
+- **Presencia internacional:** delegaciones y marcas como **Ibermansa** (LATAM), **ITH Maroc** (Norte de África) o **Iberdata** (Portugal), con distintos grados de exposición web (dominios propios, rutas bajo `grupo-gee.com` o ausencia de DNS dedicado).
+
+### Justificación del alcance
+
+Desde el punto de vista de inteligencia para un test de intrusión, estas sociedades deben incluirse en el reconocimiento porque pueden **compartir infraestructura, correo, accesos remotos, proveedores DNS, certificados TLS o servicios corporativos centralizados**. Ello es especialmente relevante en un grupo que concurre a licitaciones públicas y opera de forma coordinada en varias comunidades autónomas y mercados exteriores.
+
+Los dominios con actividad DNS verificada en el laboratorio son:
 
 | Dominio | Rol inferido |
 |---------|----------------|
-| `grupo-gee.com` | Dominio corporativo principal |
-| `geelectromedico.com` | División electromédica |
-| `ibermansa.com` | Entidad del grupo (gestión, CRM, intranet) |
-| `greelocal.com` | Servicios locales / formación / acceso remoto |
-| `iberdata.pt` | Presencia en Portugal (ccTLD `.pt`) |
+| `grupo-gee.com` | Dominio corporativo principal (actual) |
+| `geelectromedico.com` | Dominio corporativo histórico / electromédico |
+| `ibermansa.com` | IBERMAN S.A. — gestión, CRM, intranet |
+| `greelocal.com` | Oficina virtual, formación y acceso remoto |
+| `iberdata.pt` | Filial Portugal (ccTLD `.pt`) |
 
-La infraestructura observada combina hosting propio o de terceros en España (**Cyberneticos**, Cádiz), delegación DNS en **GoDaddy** o **Puntum Consulting**, y servicios de correo en **Microsoft 365** (*mail.protection.outlook.com*).
+La infraestructura observada combina hosting en España (**Cyberneticos**, Cádiz), delegación DNS en **GoDaddy** o **Puntum Consulting**, y correo en **Microsoft 365** (*mail.protection.outlook.com*).
 
 ### Procedimiento
 
@@ -131,7 +145,29 @@ dnsenum grupo-gee.com
 
 ![Enumeración DNS básica de grupo-gee.com con dnsenum](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum.png)
 
-### Resultados
+### Inventario ampliado de dominios y presencia web
+
+A partir del análisis pasivo (documentación corporativa, web pública y resolución DNS), se construye el inventario del conglomerado. Coincide con el planteamiento supervisado del trabajo de footprinting (apartados 1 y 2):
+
+| Entidad / servicio | Rol | Dominio o URL pública | Observaciones |
+|--------------------|-----|------------------------|---------------|
+| Grupo Empresarial Electromédico | Corporativo principal (actual) | `grupo-gee.com` | A → 164.138.212.77; NS GoDaddy |
+| Grupo Empresarial Electromédico | Corporativo principal (antiguo) | `geelectromedico.com` | Misma IP web; legado de marca |
+| Oficina virtual | Servicio de acceso remoto | `https://oficinavirtual.greelocal.com/Account/LogIn` | Panel de autenticación expuesto |
+| MANTELEC, S.A. | Núcleo del grupo | Sin dominio público propio | Citada en PDF corporativos |
+| ASIME, S.A. | Núcleo del grupo | `asimesa.com` (relacionado) | Sin resolución útil en theHarvester |
+| IBERMAN, S.A. | Núcleo del grupo | `ibermansa.com` | A → 82.223.212.16; servicios en 82.159.201.0/24 |
+| Euskalman S.L. | Filial País Vasco | Sin dominio público propio | Solo referencia organizativa |
+| Iberdata | Filial Portugal | `iberdata.pt` | ccTLD; NS Puntum Consulting |
+| Ibermansa Perú | Filial LATAM | `geelectromedico.com/ibermansa-peru/` | Ruta bajo dominio histórico, no FQDN propio |
+| Ibermansa Chile | Filial LATAM | Sin dominio público propio | — |
+| Ibermansa Ghana | Filial África | `grupo-gee.com/en/ibermansa-ghana/` | Contenido bajo web corporativa |
+| ITH Maroc | Filial Marruecos | Sin dominio público propio | — |
+| greelocal.com | Plataformas internas | `greelocal.com` | NS GoDaddy; MX Microsoft 365 |
+
+**Nota organizativa:** según la documentación interna del grupo, una **reestructuración reciente** ha dejado **dominios obsoletos** y **nuevos activos aún en despliegue**, lo que explica coexistencia de `grupo-gee.com` y `geelectromedico.com` y la heterogeneidad de filiales con o sin DNS dedicado.
+
+### Resultados técnicos (resolución DNS)
 
 | Dominio | TLD | Tipo | IP principal (A) | Proveedor DNS (NS) |
 |---------|-----|------|------------------|---------------------|
@@ -140,15 +176,13 @@ dnsenum grupo-gee.com
 | `ibermansa.com` | `.com` | gTLD | 82.223.212.16 | GoDaddy |
 | `greelocal.com` | `.com` | gTLD | — | GoDaddy |
 | `iberdata.pt` | `.pt` | ccTLD | 164.138.212.77 | Puntum Consulting |
-| `asimesa.com` | `.com` | gTLD | — | Filial ASIME, S.A. (documentación corporativa) |
+| `asimesa.com` | `.com` | gTLD | — | Filial ASIME (sin hosts en theHarvester) |
 
-Durante las pruebas de cache snooping también se incluyó `greelocal.com` como dominio del ecosistema GEE. La presencia de **iberdata.pt** confirma expansión geográfica hacia Portugal mediante ccTLD.
-
-En `geelectromedico.com`, theHarvester identificó correos públicos (`informacion@geelectromedico.com`, `talento@geelectromedico.com`), coherentes con los hallazgos de Google Dorks. Los documentos PDF y el código de conducta vinculan además **IBERMAN** con `ibermansa.com` y **ASIME** con `asimesa.com`, ampliando el mapa de dominios a investigar.
+En `geelectromedico.com`, theHarvester identificó `informacion@geelectromedico.com` y `talento@geelectromedico.com`, alineados con Google Dorks y Hunter.io (apartado 7).
 
 ### Resultados y análisis
 
-El grupo opera principalmente bajo gTLD `.com`, con una excepción estratégica en `.pt` para el mercado portugués. La IP **164.138.212.77** aparece como punto de convergencia web para `grupo-gee.com`, `geelectromedico.com` e `iberdata.pt`, lo que sugiere hosting compartido en el CPD de Cyberneticos. `ibermansa.com` utiliza además el rango **82.159.201.0/24** para servicios internos.
+El grupo opera principalmente bajo **gTLD `.com`**, con **`iberdata.pt`** como **ccTLD** para Portugal. La IP **164.138.212.77** concentra la web corporativa (Cyberneticos); **`ibermansa.com`** y **`greelocal.com`** despliegan aplicaciones en **82.159.201.0/24**. El inventario supervisado refuerza que el alcance del pentest no debe limitarse a un solo FQDN, sino al **ecosistema de filiales y servicios compartidos**.
 
 ---
 
@@ -189,13 +223,20 @@ dnsenum ibermansa.com -f Capturas/OSINT/mini_dict.txt
 
 #### Paso 2. Reconocimiento con recon-ng (Hackertarget)
 
+Se sigue el flujo definido en el documento de footprinting supervisado: workspace `gee`, prueba del módulo Bing (sin resultados) e instalación del módulo **Hackertarget** para consulta pasiva de hosts.
+
 ```bash
 recon-ng -w gee
+workspaces create gee
+marketplace install recon/domains-hosts/bing_domain_web
+modules load recon/domains-hosts/bing_domain_web
+options set SOURCE grupo-gee.com
+run
 marketplace install recon/domains-hosts/hackertarget
 modules load recon/domains-hosts/hackertarget
 options set SOURCE grupo-gee.com
 run
-# Repetir cambiando SOURCE para cada dominio
+# Repetir cambiando SOURCE para ibermansa.com, iberdata.pt, geelectromedico.com, greelocal.com
 show hosts
 ```
 
@@ -590,7 +631,7 @@ Las técnicas OSINT pasivas **no sustituyen** al reconocimiento DNS, pero **refu
 
 | Categoría | Hallazgos principales |
 |-----------|----------------------|
-| **Dominios / TLD** | 5+ dominios (.com y .pt); filiales MANTELEC, IBERMAN, ASIME vía documentación |
+| **Dominios / TLD** | Conglomerado (MANTELEC, IBERMAN, ASIME, filiales internacionales); dominios activos y rutas bajo `grupo-gee.com` |
 | **Subdominios** | >40 hosts; intranet, CRM, SSO, ADFS, oficina virtual, reservas, autodiscover |
 | **NS** | GoDaddy (mayoría) y Puntum Consulting (iberdata.pt) |
 | **MX** | Microsoft 365 centralizado; SPF hard fail en grupo-gee.com |
@@ -602,6 +643,8 @@ Las técnicas OSINT pasivas **no sustituyen** al reconocimiento DNS, pero **refu
 ### Conclusiones
 
 El reconocimiento sobre **Grupo GEE** combina **DNS** (pasivo y activo) con **OSINT** (Google, LinkedIn, Hunter.io, PDFs y metadatos). Las técnicas DNS —DNSDumpster, `dnsenum`, `dig`, `nmap` NSE, recon-ng— cartografían hosts y servicios; las pasivas complementarias aportan personas, correos, documentos internos filtrados y nombres de infraestructura (`greedatos`) no siempre visibles en registros DNS.
+
+En línea con el análisis supervisado del footprinting, GEE debe tratarse como **holding**: las interconexiones entre filiales (UTE, infraestructura compartida, oficina virtual en `greelocal.com`) amplían la superficie de ataque más allá del dominio raíz `grupo-gee.com`.
 
 **Aspectos positivos de la postura del objetivo:**
 
