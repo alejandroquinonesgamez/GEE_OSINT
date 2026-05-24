@@ -1,0 +1,13 @@
+# Material auxiliar y duplicados
+_extracted/
+Guia_Reconocimiento_DNS_GEE.md
+Informe-Practica-Nmap.md
+Quinones_Gamez_Alejandro_Footprinting.docx
+*.pdf
+
+# Capturas no usadas en el informe DNS
+Capturas/OSINT/google_dorks*.png
+Capturas/OSINT/hibp.png
+Capturas/OSINT/hunter_io.png
+Capturas/OSINT/pdf*.png
+Capturas/OSINT/harvester.png
