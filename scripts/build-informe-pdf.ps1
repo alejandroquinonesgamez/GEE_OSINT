@@ -23,13 +23,11 @@ if (-not (Test-Path $pandoc)) {
     if ($cmd) { $pandoc = $cmd.Source } else { throw "pandoc no encontrado. Instale: winget install JohnMacFarlane.Pandoc" }
 }
 
+# Indice: tabla en la seccion Introduccion del .md (evita TOC de Pandoc entre titulo e Intro)
 & $pandoc $MdTmp -o $HtmlOut `
     --standalone `
     --embed-resources `
     --resource-path="." `
-    --toc `
-    --toc-depth=2 `
-    -M toc-title="Indice" `
     -c $Css `
     -V lang=es `
     --metadata title="Reconocimiento DNS de una empresa - Grupo GEE"
@@ -66,5 +64,5 @@ try {
 
 $mb = [math]::Round((Get-Item $pdfFull).Length / 1MB, 2)
 Write-Host "PDF generado: $pdfFull ($mb MB)"
-Write-Host "  - Indice (--toc, profundidad 2)"
-Write-Host "  - Cada apartado (h2) en pagina nueva (informe-print.css)"
+Write-Host "  - Indice: tabla en Introduccion del informe"
+Write-Host "  - Apartados 1-8: nueva pagina (sin hoja en blanco entre ellos)"

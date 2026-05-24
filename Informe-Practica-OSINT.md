@@ -2,7 +2,7 @@
 
 **Autor:** Alejandro Quiñones Gámez  
 **Asignatura:** Hacking Ético  
-**Curso:** Curso de Especialización en Ciberseguridad en Tecnologías de la Información
+**Curso:** Especialización en Ciberseguridad en Tecnologías de la Información
 
 ---
 
@@ -27,7 +27,7 @@ Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache
 
 <a id="alcance-y-estructura-del-informe"></a>
 
-### Alcance y estructura del informe
+### Índice
 
 **Título de la práctica:** Reconocimiento DNS de una empresa.
 
