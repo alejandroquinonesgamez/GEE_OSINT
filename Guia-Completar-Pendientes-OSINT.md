@@ -338,7 +338,7 @@ cd OSINT
 powershell -ExecutionPolicy Bypass -File .\scripts\build-informe-pdf.ps1
 ```
 
-Genera `Informe-Practica-OSINT.pdf` con **índice** (tabla en la Introducción del informe), **título y autor encima de la Introducción**, y **apartados 1–8 cada uno en página nueva** (sin hojas en blanco entre apartados). Usa `scripts/informe-print.css`. Si el PDF está abierto, la salida queda en `_build\Informe-Practica-OSINT.pdf`.
+Genera `Informe-Practica-OSINT.pdf` con **índice automático** (Pandoc, tras el título), **Introducción a continuación**, y **apartados 1–8 en página nueva** (sin hojas en blanco entre apartados). Usa `scripts/informe-print.css`. Si el PDF está abierto, la salida queda en `_build\Informe-Practica-OSINT.pdf`.
 
 Requisitos: **Pandoc** (`winget install JohnMacFarlane.Pandoc`) y **Microsoft Edge**.
 

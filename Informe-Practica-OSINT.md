@@ -27,7 +27,7 @@ Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache
 
 <a id="alcance-y-estructura-del-informe"></a>
 
-### Índice
+### Alcance y estructura del informe
 
 **Título de la práctica:** Reconocimiento DNS de una empresa.
 

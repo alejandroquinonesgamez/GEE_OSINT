@@ -1,4 +1,4 @@
-/* Impresión: portada con Introducción; índice en el propio informe; apartado nuevo sin hoja en blanco */
+/* Impresión: título + índice Pandoc + Introducción; apartados 1–8 en página nueva */
 @page {
   size: A4;
   margin: 2cm 2.2cm 2.2cm 2cm;
@@ -11,7 +11,7 @@ body {
   color: #1a1a1a;
 }
 
-/* Cabecera (título + autor) pegada a la Introducción */
+/* Cabecera (título + autor) continua con el índice */
 header#title-block-header {
   page-break-after: avoid;
   break-after: avoid-page;
@@ -28,8 +28,37 @@ header#title-block-header p {
   margin: 0.2em 0;
 }
 
-/* Primer bloque del cuerpo: Introducción justo debajo del título */
-h2 {
+/* Índice automático (Pandoc --toc), justo después del título como antes */
+#TOC {
+  page-break-before: avoid;
+  break-before: avoid-page;
+  page-break-after: avoid;
+  break-after: avoid-page;
+  margin: 0.6em 0 1em 0;
+}
+
+#TOC > ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#TOC > ul > li {
+  margin: 0.3em 0;
+}
+
+#TOC a {
+  text-decoration: none;
+  color: #1a1a1a;
+}
+
+#TOC h2#toc-title {
+  font-size: 14pt;
+  margin: 0.4em 0 0.5em 0;
+  page-break-after: avoid;
+}
+
+/* Introducción y resto de h2: sin salto forzado (evita hoja en blanco) */
+body > h2:not(#toc-title) {
   page-break-before: avoid;
   break-before: avoid-page;
   page-break-after: avoid;
@@ -37,7 +66,7 @@ h2 {
   margin-top: 0.6em;
 }
 
-/* Solo los apartados numerados (1–8) empiezan en página nueva (un solo salto, sin duplicar) */
+/* Apartados numerados: un solo salto de página */
 a[id="apartado-1"],
 a[id="apartado-2"],
 a[id="apartado-3"],
@@ -68,4 +97,10 @@ img {
   max-width: 100%;
   height: auto;
   page-break-inside: avoid;
+}
+
+@media screen {
+  #TOC a::after {
+    content: none;
+  }
 }
