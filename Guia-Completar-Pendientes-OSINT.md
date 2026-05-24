@@ -331,17 +331,18 @@ host -t ptr 164.138.212.77
 
 ## Parte E — Exportar a PDF (entrega Moodle)
 
-1. Abre `Informe-Practica-OSINT.md` en **VS Code** + extensión «Markdown PDF», o **Typora**, o **Pandoc**.
-2. Comprueba que **las imágenes se ven** (URLs GitHub requieren conexión al exportar).
-3. Alternativa offline: clona el repo y cambia temporalmente rutas a locales `Capturas/OSINT/...` antes de exportar.
-4. Revisa: portada con nombre, índice implícito por apartados 1–8, capturas legibles, sin placeholders `[Rellenar]`.
-5. Sube el **PDF** a Moodle (no solo el .md).
+**Recomendado (índice + apartado por página):**
 
-**Pandoc (ejemplo):**
-
-```bash
-pandoc Informe-Practica-OSINT.md -o Informe-Practica-OSINT.pdf --resource-path=.
+```powershell
+cd OSINT
+powershell -ExecutionPolicy Bypass -File .\scripts\build-informe-pdf.ps1
 ```
+
+Genera `Informe-Practica-OSINT.pdf` con **índice** (apartados 1–8 e Introducción) y **cada `##` en página nueva**. Usa capturas locales y CSS en `scripts/informe-print.css`. Si el PDF está abierto en el visor, la salida queda en `_build\Informe-Practica-OSINT.pdf`.
+
+Requisitos: **Pandoc** (`winget install JohnMacFarlane.Pandoc`) y **Microsoft Edge**.
+
+Antes de entregar, revisa: portada, índice con enlaces, apartados en páginas separadas, capturas legibles.
 
 ---
 

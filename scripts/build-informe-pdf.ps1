@@ -29,7 +29,7 @@ if (-not (Test-Path $pandoc)) {
     --resource-path="." `
     --toc `
     --toc-depth=2 `
-    -V toc-title="Índice" `
+    -M toc-title="Indice" `
     -c $Css `
     -V lang=es `
     --metadata title="Reconocimiento DNS de una empresa - Grupo GEE"
