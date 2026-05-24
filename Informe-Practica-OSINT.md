@@ -23,7 +23,7 @@ El protocolo **DNS** (Domain Name System) traduce nombres de dominio en direccio
 
 La presente práctica aplica técnicas de reconocimiento DNS sobre **Grupo GEE**, grupo empresarial del sector electromédico y servicios asociados, con presencia en varios dominios y TLD. El trabajo se ejecuta desde **Kali Linux**, siguiendo la metodología descrita en los materiales de la unidad (*Reconocimiento DNS*, *Introducción a DNS* y *Cheat Sheet Reconocimiento DNS*).
 
-Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache-snoop`), **recon-ng** (módulo Hackertarget), **DNSDumpster**, **Sublist3r** y **theHarvester** (consulta complementaria de dominios relacionados).
+Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache-snoop`), **recon-ng** (módulo Hackertarget), **DNSDumpster**, **Sublist3r**, **theHarvester**, **Google Dorks**, **Hunter.io**, **Have I Been Pwned** y **ExifTool** (análisis de metadatos en documentos PDF públicos).
 
 ---
 
@@ -52,6 +52,32 @@ La infraestructura observada combina hosting propio o de terceros en España (**
 Se inicia el reconocimiento pasivo con la herramienta web **DNSDumpster**, introduciendo el dominio raíz `grupo-gee.com` como punto de partida del análisis.
 
 ![Consulta inicial en DNSDumpster para grupo-gee.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/DNSDumpster.png)
+
+**Paso 2.** Búsqueda pasiva con operadores avanzados de Google para perfilar la organización y localizar activos web:
+
+```text
+site:grupo-gee.com OR site:geelectromedico.com "@geelectromedico.com"
+```
+
+![Google Dorks: emails y rutas web del grupo](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/google_dorks.png)
+
+Se obtiene el correo `informacion@geelectromedico.com`, el teléfono **+34 91 549 14 07**, la dirección en **San Sebastián de los Reyes (Madrid)** —Avda. Tenerife, 2, Complejo Empresarial MARPE— y rutas como `/wp-content/uploads/` (indicio de **WordPress** en `geelectromedico.com`).
+
+**Paso 3.** Localización de documentos PDF corporativos indexados:
+
+```text
+site:grupo-gee.com filetype:pdf
+```
+
+![Google Dorks: documentos PDF en grupo-gee.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/google_dorks_pdf.png)
+
+Entre los ficheros públicos figuran el *Código de conducta* y la *política integrada GEE*, que permiten identificar filiales (**MANTELEC, S.A.**) y otra sede en **Tudela (Navarra)**.
+
+**Paso 4.** Revisión del documento *Código de conducta* (GEE-D-RSC-01), descargado desde la web del grupo:
+
+![Portada del Código de conducta GEE](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/pdf.png)
+
+El documento confirma que el **Grupo Empresarial Electromédico (GEE)** —fundado en 1982— integra las sociedades **MANTELEC, S.A.**, **IBERMAN, S.A.** y **ASIME, S.A.**, lo que explica dominios como `ibermansa.com` y `asimesa.com` en el reconocimiento posterior.
 
 ### Resultados y análisis
 
@@ -91,7 +117,11 @@ run
 theharvester -d grupo-gee.com -l 500 -b duckduckgo,yahoo
 theharvester -d geelectromedico.com -l 500 -b duckduckgo,yahoo
 theharvester -d asimesa.com -l 500 -b duckduckgo,yahoo
+theharvester -d ibermansa.com -l 500 -b duckduckgo,yahoo
+theharvester -d iberdata.pt -l 500 -b duckduckgo,yahoo
 ```
+
+![Resultados de theHarvester sobre dominios del grupo](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/harvester.png)
 
 **Paso 2.** Análisis de resolución DNS inicial con `dnsenum` sin diccionario sobre el dominio corporativo:
 
@@ -110,11 +140,11 @@ dnsenum grupo-gee.com
 | `ibermansa.com` | `.com` | gTLD | 82.223.212.16 | GoDaddy |
 | `greelocal.com` | `.com` | gTLD | — | GoDaddy |
 | `iberdata.pt` | `.pt` | ccTLD | 164.138.212.77 | Puntum Consulting |
-| `asimesa.com` | `.com` | gTLD | — | Relacionado (theHarvester) |
+| `asimesa.com` | `.com` | gTLD | — | Filial ASIME, S.A. (documentación corporativa) |
 
 Durante las pruebas de cache snooping también se incluyó `greelocal.com` como dominio del ecosistema GEE. La presencia de **iberdata.pt** confirma expansión geográfica hacia Portugal mediante ccTLD.
 
-En `geelectromedico.com`, theHarvester identificó correos públicos (`informacion@geelectromedico.com`, `calento@geelectromedico.com`), lo que refuerza la vinculación del dominio al grupo.
+En `geelectromedico.com`, theHarvester identificó correos públicos (`informacion@geelectromedico.com`, `talento@geelectromedico.com`), coherentes con los hallazgos de Google Dorks. Los documentos PDF y el código de conducta vinculan además **IBERMAN** con `ibermansa.com` y **ASIME** con `asimesa.com`, ampliando el mapa de dominios a investigar.
 
 ### Resultados y análisis
 
@@ -132,7 +162,15 @@ Descubrir nombres de host y subdominios públicos del grupo mediante técnicas a
 
 #### Paso 1. Enumeración con dnsenum y diccionario
 
-Se emplea el diccionario `Capturas/OSINT/mini_dict.txt` (~5000 entradas) con `dnsenum`:
+Se emplea el diccionario `Capturas/OSINT/mini_dict.txt` (~5000 entradas) con `dnsenum`. Sobre el dominio raíz `grupo-gee.com` el brute force aporta subdominios adicionales (`www`, `autodiscover`) y búsqueda inversa en el /24 de Cyberneticos:
+
+```bash
+dnsenum grupo-gee.com -f Capturas/OSINT/mini_dict.txt
+```
+
+![Brute force DNS sobre grupo-gee.com con mini_dict.txt](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum%20Dict.png)
+
+Se repite el procedimiento sobre el resto de dominios del grupo:
 
 ```bash
 dnsenum geelectromedico.com -f Capturas/OSINT/mini_dict.txt
@@ -203,11 +241,17 @@ Consultas en https://dnsdumpster.com para cada dominio principal.
 
 ### Tabla resumen de subdominios identificados
 
-#### grupo-gee.com / geelectromedico.com
+#### grupo-gee.com
 
 | Subdominio | IP / destino | Servicio inferido |
 |------------|--------------|-------------------|
-| `www.grupo-gee.com` | 164.138.212.77 | Web corporativa |
+| `www.grupo-gee.com` | 164.138.212.77 | Web corporativa (dnsenum + diccionario) |
+| `autodiscover.grupo-gee.com` | Microsoft 365 (CNAME) | Autodiscover Outlook |
+
+#### geelectromedico.com
+
+| Subdominio | IP / destino | Servicio inferido |
+|------------|--------------|-------------------|
 | `www.geelectromedico.com` | 164.138.212.77 | Web |
 | `smtp.geelectromedico.com` | 82.159.201.20 | Correo saliente |
 | `webmail.geelectromedico.com` | 142.251.168.121 (Google) | Webmail Google |
@@ -440,6 +484,18 @@ whois -h whois.ripe.net 82.159.201.20
 
 **Paso 3.** Correlación con DNSDumpster (ASN, RevIP, ubicación geográfica).
 
+**Paso 4.** Análisis de metadatos en PDFs descubiertos con `exiftool`, para extraer nombres internos de sistemas y rutas de red:
+
+```bash
+exiftool Capturas/OSINT/CODIGO_DE_CONDUCTA.pdf
+exiftool Capturas/OSINT/ENS-FR05-231228-Certificado-ENS-FIRMADO.pdf
+exiftool Capturas/OSINT/GEE-P-SGI-01-POLITICA-GEE.pdf
+```
+
+![Metadatos del Código de conducta: rutas UNC internas](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/pdf_carving.png)
+
+![Metadatos de certificado ENS y política SGI](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/pdf_carving_2.png)
+
 ### Resultados
 
 #### Netnames e inetnum (WHOIS)
@@ -465,7 +521,18 @@ El bloque **82.159.201.0/24** concentra la mayoría de subdominios internos (int
 
 #### Resolución inversa
 
-`dnsenum` ejecutó búsqueda inversa sobre 1024 IPs en los rangos de `greelocal.com` sin obtener PTR (`0 results out of 1024`), lo que limita el descubrimiento adicional por rDNS.
+`dnsenum` ejecutó búsqueda inversa sobre 1024 IPs en los rangos de `greelocal.com` y sobre el /24 `164.138.212.0/24` (dominio `grupo-gee.com`) sin obtener PTR útiles (`0 results`), lo que limita el descubrimiento adicional por rDNS.
+
+#### Infraestructura interna revelada por metadatos PDF
+
+| Fichero | Dato relevante | Implicación |
+|---------|----------------|-------------|
+| `CODIGO_DE_CONDUCTA.pdf` | Ruta UNC `\\greedatos\DEPARTAMENTOS\Dpto. Marketing\...` | Nombre de servidor de ficheros interno (**greedatos**) |
+| `CODIGO_DE_CONDUCTA.pdf` | Adobe Illustrator 25.0 (Windows), fechas 2021–2022 | Perfil de estaciones de trabajo |
+| `ENS-FR05-231228-Certificado-ENS-FIRMADO.pdf` | Autor «Idoia», Microsoft Word 365 | Usuario y suite ofimática |
+| `GEE-P-SGI-01-POLITICA-GEE.pdf` | Impresora **Develop ineo+ 450i** | Modelo de hardware de oficina |
+
+El hostname **greedatos** guarda relación semántica con `greelocal.com` y refuerza la hipótesis de un entorno Windows/File Server interno asociado al grupo.
 
 ### Resultados y análisis
 
@@ -479,22 +546,62 @@ Esta segmentación orienta el plan de ataque: priorizar el escaneo de **82.159.2
 
 ---
 
-## 7. Resumen y conclusiones
+## 7. Reconocimiento pasivo complementario (OSINT)
+
+### Objetivo
+
+Completar el *footprinting* con técnicas pasivas que no dependen exclusivamente del protocolo DNS, pero que alimentan la inteligencia sobre personas, correos, documentos y posibles vectores de ataque vinculados a los dominios ya identificados.
+
+### 7.1 Perfiles profesionales (Google Dorks + LinkedIn)
+
+```text
+site:es.linkedin.com/in/ "Grupo Empresarial Electromédico"
+```
+
+![Google Dorks: empleados en LinkedIn](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/google_dorks_ppl.png)
+
+Se localizan perfiles con cargos relevantes (p. ej. **Director General**, gestores de proyecto en electromedicina, personal técnico en Madrid y Málaga). Esta información complementa la enumeración DNS al identificar posibles objetivos de ingeniería social o spear phishing.
+
+### 7.2 Correos corporativos (Hunter.io)
+
+Consulta en [Hunter.io](https://hunter.io) sobre `geelectromedico.com` y dominios relacionados:
+
+![Hunter.io: 39 correos y estructura por departamentos](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/hunter_io.png)
+
+Hunter.io reporta **39 direcciones** en `geelectromedico.com`, clasificadas en personas, decisores y cuentas genéricas. Destaca personal de **IT** (administrador de infraestructura), **ventas**, **soporte** y **dirección regional**, coherente con la sede en San Sebastián de los Reyes. Los dominios `ibermansa.com` e `iberdata.com` aparecen como asociados en la misma búsqueda.
+
+### 7.3 Comprobación de filtraciones (Have I Been Pwned)
+
+Sobre el correo `talento@geelectromedico.com` (RR. HH., también hallado por theHarvester):
+
+![Have I Been Pwned: sin brechas para talento@geelectromedico.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/hibp.png)
+
+**Resultado:** 0 brechas conocidas en la base de datos de HIBP. No implica ausencia total de riesgo, pero indica que esa cuenta no figura en filtraciones públicas indexadas por el servicio.
+
+### Resultados y análisis
+
+Las técnicas OSINT pasivas **no sustituyen** al reconocimiento DNS, pero **refuerzan** el mapa del objetivo: confirman emails válidos, revelan organigrama, aportan documentos con metadatos sensibles y cruzan filiales (MANTELEC, IBERMAN, ASIME) con nombres de dominio. En un pentest, esta fase precedería o paralelizaría el escaneo de los subdominios descubiertos por `dnsenum`.
+
+---
+
+## 8. Resumen y conclusiones
 
 ### Resumen de inteligencia recopilada
 
 | Categoría | Hallazgos principales |
 |-----------|----------------------|
-| **Dominios / TLD** | 5+ dominios (.com y .pt); grupo empresarial multisite |
-| **Subdominios** | >40 hosts; intranet, CRM, SSO, ADFS, oficina virtual, reservas |
+| **Dominios / TLD** | 5+ dominios (.com y .pt); filiales MANTELEC, IBERMAN, ASIME vía documentación |
+| **Subdominios** | >40 hosts; intranet, CRM, SSO, ADFS, oficina virtual, reservas, autodiscover |
 | **NS** | GoDaddy (mayoría) y Puntum Consulting (iberdata.pt) |
 | **MX** | Microsoft 365 centralizado; SPF hard fail en grupo-gee.com |
 | **Vulnerabilidades DNS** | AXFR no explotable; cache snooping parcialmente exitoso |
 | **Rangos IP** | 164.138.212.0/24, 82.159.201.0/24, 82.223.212.0/24, 195.23.128.0/24 |
+| **OSINT / metadatos** | Emails (Hunter, theHarvester), PDFs públicos, servidor `greedatos`, perfiles LinkedIn |
+| **Credenciales** | `talento@geelectromedico.com` sin brechas en HIBP |
 
 ### Conclusiones
 
-El reconocimiento DNS sobre **Grupo GEE** ha permitido cartografiar la superficie de ataque del grupo sin necesidad de acceso interno. Las técnicas pasivas (DNSDumpster) y activas (`dnsenum`, `dig`, `nmap` NSE, recon-ng) se complementan: las primeras aportan contexto y banners; las segundas descubren subdominios no indexados públicamente.
+El reconocimiento sobre **Grupo GEE** combina **DNS** (pasivo y activo) con **OSINT** (Google, LinkedIn, Hunter.io, PDFs y metadatos). Las técnicas DNS —DNSDumpster, `dnsenum`, `dig`, `nmap` NSE, recon-ng— cartografían hosts y servicios; las pasivas complementarias aportan personas, correos, documentos internos filtrados y nombres de infraestructura (`greedatos`) no siempre visibles en registros DNS.
 
 **Aspectos positivos de la postura del objetivo:**
 
@@ -508,6 +615,8 @@ El reconocimiento DNS sobre **Grupo GEE** ha permitido cartografiar la superfici
 - **Cache snooping** exitoso en ns13.domaincontrol.com y servidor Puntum, indicando resolución reciente de dominios del grupo.
 - **Hosting compartido** (RevIP 413 en 164.138.212.77) con posible riesgo de vecindad.
 - Servicios en **terceros** (Google, takeaspot.net, OVH) que amplían la superficie fuera del control directo del grupo.
+- **Metadatos en PDFs** con rutas UNC y nombres de usuario; **39 emails** enumerados en Hunter.io para campañas dirigidas.
+- Documentos de **seguridad de la información** (ENS, política SGI) expuestos o indexados, útiles para entender el marco de cumplimiento del grupo.
 
 ### Estrategia recomendada para siguientes fases
 
@@ -519,4 +628,4 @@ El reconocimiento DNS sobre **Grupo GEE** ha permitido cartografiar la superfici
 
 ---
 
-*Informe elaborado como evidencia de la práctica «Reconocimiento DNS de una empresa». Todas las capturas referenciadas se encuentran en el repositorio [GEE_OSINT](https://github.com/alejandroquinonesgamez/GEE_OSINT), carpeta `Capturas/OSINT/`.*
+*Informe elaborado como evidencia de la práctica «Reconocimiento DNS de una empresa». Todas las capturas y documentos de apoyo (PDF) se encuentran en el repositorio [GEE_OSINT](https://github.com/alejandroquinonesgamez/GEE_OSINT), carpeta `Capturas/OSINT/`.*
