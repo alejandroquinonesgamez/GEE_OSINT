@@ -18,10 +18,10 @@ Esta guía lista **todo lo que falta o conviene reforzar** respecto al [Enunciad
 | # | Tarea | Prioridad | ¿Captura? |
 |---|--------|-----------|-----------|
 | 1 | Tabla **pasivo vs activo** + mención **RA 3.a** en §8 | Alta | No (solo texto en informe) |
-| 2 | **`dnsrecon -t tld`** con captura | Alta | Sí |
-| 3 | **`dig axfr`** dedicado (aparte de dnsenum) | Alta | Sí |
-| 4 | **WHOIS 82.159.201.20** + captura | Alta | Sí (texto 🤖 listo) |
-| 5 | **PTR / rDNS** documentado con comando | Media | Sí (resultado 🤖) |
+| 2 | **`dnsrecon -t tld`** con captura | Alta | ✅ Hecho (`dnsrecon_tld_grupo-gee.png` + `_2.png`) |
+| 3 | **`dig axfr`** dedicado (aparte de dnsenum) | Alta | ✅ Hecho (`dig_axfr_grupo-gee.png`) |
+| 4 | **WHOIS 82.159.201.20** + captura | Alta | ✅ Hecho (`whois 82_159_201_1.png`, `_2.png`) |
+| 5 | **PTR / rDNS** documentado con comando | Media | ✅ Hecho (`host_ptr_interno.png`) |
 | 6 | **§5** párrafo «Resultados y análisis» global | Media | No |
 | 7 | **WHOIS IP del MX** (opcional) | Baja | Sí |
 | 8 | **`greelocal.com`** IP en tabla §2 | Baja | No |
@@ -85,27 +85,41 @@ Todas las capturas: **Pantalla completa de terminal** con comando visible y sali
 
 ---
 
-### B.1 🔴 `dnsrecon -t tld` (Apartado 2)
+### B.1 🔴 `dnsrecon -t tld` (Apartado 2) — por qué la salida es enorme — por qué “miles de líneas”
 
-**Objetivo:** Enumerar dominios `grupo-gee.<tld>` alternativos (`.es`, `.net`, etc.).
+**Objetivo del enunciado:** correlacionar dominios del grupo, no listar todo el DNS mundial.
+
+**Qué hace el comando:** `dnsrecon -t tld -d grupo-gee` prueba el nombre `grupo-gee` contra una lista enorme de TLD (`.com`, `.es`, `.net`, `.ph`, `.edu.ee`, TLD de países, zonas de nube, etc.). Cada vez que **existe** un registro DNS (A/AAAA) para `grupo-gee.<tld>` o un wildcard lo resuelve, la herramienta lo imprime. Eso genera **cientos o miles** de líneas, la mayoría **sin relación** con Grupo GEE (p. ej. `grupo-gee.adobeioruntime.net`, `grupo-gee.s3.amazonaws.com`).
+
+**Comando correcto para el informe:**
 
 ```bash
-# Instalar si no está (Kali suele traerlo)
-sudo apt update && sudo apt install -y dnsrecon
-
-# Comando del cheat sheet — base del dominio SIN TLD
 dnsrecon -t tld -d grupo-gee
 ```
 
-**Qué debes ver (ya verificado 🤖):**
+**Para el informe, filtra en terminal** (solo TLD corporativos):
 
-- `grupo-gee.com` → `164.138.212.77` (vuestro objetivo)
-- `grupo-gee.es` → IPs distintas (registrar si son del grupo o parking)
-- Otros TLD (.net, .ph, …) — anotar solo los relevantes
+```bash
+dnsrecon -t tld -d grupo-gee 2>&1 | grep -E 'grupo-gee\.(com|es|net|org|pt|eu)\s' | grep -v amazonaws | grep -v adobe | grep -v cloudfront | head -80
+```
 
-**Captura:** guardar como `dnsrecon_tld_grupo-gee.png`
+**Qué conservar en la tabla del informe** (extracto en `Capturas/OSINT/dnsrecon_tld_grupo-gee.txt`, **12 registros** tras filtrar la salida bruta de **5213**):
 
-**No uses** `dnsrecon -t tld -d gee` solo: devuelve cientos de dominios genéricos (`gee.com`, `gee.de`…) no relacionados con el grupo.
+| Dominio | IP (A) | Observación |
+|---------|----------|-------------|
+| `grupo-gee.com` | 164.138.212.77 | Principal |
+| `grupo-gee.es` | 15.197.148.33 / 3.33.130.190 | TLD España; verificar titularidad |
+| `grupo-gee.net` | 15.197.225.128 / 3.33.251.168 | TLD alternativo |
+| `grupo-gee.ph` | 45.79.222.138 | ccTLD |
+| `grupo-gee.ac.jobs` | 64.190.63.222 | gTLD |
+| `grupo-gee.vg` | 88.198.29.97 | ccTLD |
+| `grupo-gee.be.biz` | 13.248.169.48 / 76.223.54.146 | ccTLD |
+| `grupo-gee.bg.com` | 13.225.61.36 | ccTLD |
+| `grupo-gee.ws` | 64.70.19.203 | ccTLD |
+
+**Capturas (dos):** `dnsrecon_tld_grupo-gee.png` (inicio del comando y primeros A/AAAA) y `dnsrecon_tld_grupo-gee_2.png` (fin: «5213 Records Found»). No subir el log completo al informe; solo la tabla filtrada.
+
+**No uses** `dnsrecon -t tld -d gee` (solo devuelve ruido tipo `gee.com`, `gee.de`, etc.).
 
 ---
 
@@ -225,7 +239,8 @@ sudo nmap -sU -p 53 --script dns-cache-snoop.nse \
 
 | Archivo PNG | Comando principal |
 |-------------|-------------------|
-| `dnsrecon_tld_grupo-gee.png` | `dnsrecon -t tld -d grupo-gee` |
+| `dnsrecon_tld_grupo-gee.png` | `dnsrecon -t tld -d grupo-gee` (inicio) |
+| `dnsrecon_tld_grupo-gee_2.png` | Mismo comando (fin: 5213 Records Found) |
 | `dig_axfr_grupo-gee.png` | `dig @ns13.domaincontrol.com grupo-gee.com axfr` |
 | `dig_axfr_iberdata.png` | `dig @ns1.puntumconsulting.com iberdata.pt axfr` |
 | `whois 82_159_201.png` | `whois -h whois.ripe.net 82.159.201.20` |

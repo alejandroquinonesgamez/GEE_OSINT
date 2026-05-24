@@ -37,6 +37,12 @@ Identificar y caracterizar la organización seleccionada como blanco de reconoci
 
 Para esta práctica se analiza **GEE** (*Grupo Empresarial Electromédico*), organización en la que el autor desarrolla su actividad profesional. El grupo se presenta públicamente como especialista en **electromedicina e ingeniería sanitaria**, con presencia internacional. El dominio principal expuesto en Internet es **`grupo-gee.com`**, aunque la huella digital real se distribuye entre dominios históricos, filiales y servicios corporativos asociados.
 
+### Criterios de idoneidad (referencia metodológica)
+
+La elección del objetivo responde a los criterios habituales en footprinting: organización con **múltiples dominios y subdominios**, **servicios expuestos** (web, correo, oficina virtual), **infraestructura en varios proveedores** (GoDaddy, Puntum, Microsoft 365) y **superficie de ataque ampliada** (paneles de login, subdominios de filiales, rangos en RIR). El análisis DNS activo complementa la OSINT pasiva y permite evaluar **debilidades de configuración** (AXFR denegado, cache snooping parcial). La metodología se alinea con el reconocimiento DNS de la unidad y con el enfoque de footprinting del documento de referencia del curso (apartados 1 y 2: conglomerado, filiales, servicios compartidos).
+
+### Información general de la empresa (OSINT)
+
 ### Información general de la empresa (OSINT)
 
 La fase inicial de OSINT muestra que GEE **no opera como una única entidad monolítica**, sino como un **conglomerado corporativo**:
@@ -151,15 +157,27 @@ dnsenum grupo-gee.com
 dnsrecon -t tld -d grupo-gee
 ```
 
-Salida relevante (ver también `Capturas/OSINT/dnsrecon_tld_grupo-gee.txt`):
+La enumeración TLD tarda varios minutos (estimación inicial ~56 min) y genera **5213 registros** en la salida bruta; la mayoría son **falsos positivos** (p. ej. `grupo-gee.s3.amazonaws.com`, `grupo-gee.yolasite.com`, `grupo-gee.lib.ee` → `127.0.0.1`). Para el análisis se conservan solo los TLD con nombre `grupo-gee.<tld>` y resolución coherente (extracto en `Capturas/OSINT/dnsrecon_tld_grupo-gee.txt`: **12 registros**).
 
-| Dominio encontrado | IP | Relevancia |
-|--------------------|-----|------------|
+![Inicio de dnsrecon -t tld -d grupo-gee (comando y primeros A/AAAA)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsrecon_tld_grupo-gee.png)
+
+![Fin de la enumeración TLD: 5213 Records Found](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsrecon_tld_grupo-gee_2.png)
+
+**Dominios filtrados (12 registros A relevantes):**
+
+| Dominio encontrado | IP (A) | Relevancia |
+|--------------------|--------|------------|
 | `grupo-gee.com` | 164.138.212.77 | Dominio corporativo activo |
-| `grupo-gee.es` | 15.197.148.33 / 3.33.130.190 | ccTLD español; verificar titularidad |
-| `grupo-gee.net` | 15.197.225.128 / 3.33.251.168 | Posible dominio defensivo o parking |
+| `grupo-gee.net` | 15.197.225.128 / 3.33.251.168 | gTLD alternativo / posible parking |
+| `grupo-gee.es` | 15.197.148.33 / 3.33.130.190 | ccTLD España; verificar titularidad |
+| `grupo-gee.ph` | 45.79.222.138 | ccTLD Filipinas |
+| `grupo-gee.ac.jobs` | 64.190.63.222 | gTLD genérico |
+| `grupo-gee.vg` | 88.198.29.97 | ccTLD Islas Vírgenes |
+| `grupo-gee.be.biz` | 13.248.169.48 / 76.223.54.146 | ccTLD Bélgica |
+| `grupo-gee.bg.com` | 13.225.61.36 | ccTLD Bulgaria |
+| `grupo-gee.ws` | 64.70.19.203 | ccTLD Samoa |
 
-> **Captura pendiente:** terminal con `dnsrecon -t tld -d grupo-gee` → `dnsrecon_tld_grupo-gee.png`
+**Conclusión del apartado:** el grupo mantiene presencia DNS bajo el nombre base `grupo-gee` en varios TLD; el activo operativo principal sigue siendo **`grupo-gee.com`** (164.138.212.77, mismo bloque que la web corporativa). El resto de TLD detectados conviene verificarlos en WHOIS/RDAP antes de ampliar el alcance del pentest.
 
 ### Inventario ampliado de dominios y presencia web
 
@@ -190,7 +208,7 @@ A partir del análisis pasivo (documentación corporativa, web pública y resolu
 | `grupo-gee.com` | `.com` | gTLD | 164.138.212.77 | GoDaddy (domaincontrol.com) |
 | `geelectromedico.com` | `.com` | gTLD | 164.138.212.77 | GoDaddy |
 | `ibermansa.com` | `.com` | gTLD | 82.223.212.16 | GoDaddy |
-| `greelocal.com` | `.com` | gTLD | — | GoDaddy |
+| `greelocal.com` | `.com` | gTLD | — | GoDaddy (NS `ns13`/`ns14`) |
 | `iberdata.pt` | `.pt` | ccTLD | 164.138.212.77 | Puntum Consulting |
 | `asimesa.com` | `.com` | gTLD | — | Filial ASIME (sin hosts en theHarvester) |
 
@@ -217,6 +235,15 @@ Se emplea el diccionario `Capturas/OSINT/mini_dict.txt` (~5000 entradas) con `dn
 ```bash
 dnsenum grupo-gee.com -f Capturas/OSINT/mini_dict.txt
 ```
+
+Complementar con consultas manuales sobre hosts descubiertos (recomendado en la guía):
+
+```bash
+dig www.grupo-gee.com A +short
+dig autodiscover.grupo-gee.com A +short
+```
+
+![Brute force DNS sobre grupo-gee.com con mini_dict.txt](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum%20Dict.png)
 
 ![Brute force DNS sobre grupo-gee.com con mini_dict.txt](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum%20Dict.png)
 
@@ -525,7 +552,7 @@ Comando adicional de confirmación AXFR:
 dig @ns13.domaincontrol.com grupo-gee.com axfr
 ```
 
-> **Captura pendiente:** salida de `dig axfr` → `dig_axfr_grupo-gee.png`
+![Transferencia de zona (AXFR) sobre grupo-gee.com — REFUSED](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dig_axfr_grupo-gee.png)
 
 ---
 
@@ -547,7 +574,9 @@ whois -h whois.ripe.net 82.159.201.20
 
 ![WHOIS RIPE de 164.138.212.77 (Cyberneticos)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/whois%20164_138.png)
 
-> **Captura pendiente:** `whois -h whois.ripe.net 82.159.201.20` → `whois 82_159_201.png`
+![WHOIS RIPE de 82.159.201.20 (Vodafone ONO, netname ES-ONO-20031202)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/whois%2082_159_201_1.png)
+
+![WHOIS RIPE de 82.159.201.20 (continuación: ruta, abuse)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/whois%2082_159_201_2.png)
 
 ![WHOIS ARIN de 97.74.106.7 (GoDaddy)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/whois%2097_74.png)
 
@@ -605,7 +634,7 @@ host -t ptr 164.138.212.77
 
 El PTR de **82.159.201.20** confirma el vínculo entre la red **Vodafone ONo** y la plataforma **greelocal.com** (`greeperi01`). `dnsenum` ejecutó además búsqueda inversa masiva sobre 1024 IPs en rangos de `greelocal.com` y el /24 `164.138.212.0/24` sin PTR adicionales (`0 results`).
 
-> **Captura pendiente:** salida de `host -t ptr` → `host_ptr_interno.png`
+![Resolución inversa PTR de 82.159.201.20 → greeperi01.greelocal.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/host_ptr_interno.png)
 
 #### Infraestructura interna revelada por metadatos PDF
 
