@@ -1,0 +1,87 @@
+/* Estilos de impresión: índice + apartado por página */
+@page {
+  size: A4;
+  margin: 2cm 2.2cm 2.2cm 2cm;
+}
+
+body {
+  font-family: "Segoe UI", Calibri, Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #1a1a1a;
+}
+
+h1 {
+  font-size: 22pt;
+  margin-top: 0;
+  page-break-after: avoid;
+}
+
+/* Índice generado por Pandoc (--toc) */
+#TOC {
+  page-break-before: always;
+  break-before: page;
+  page-break-after: always;
+  break-after: page;
+  margin-bottom: 1.5em;
+}
+
+#TOC > ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#TOC > ul > li {
+  margin: 0.35em 0;
+}
+
+#TOC a {
+  text-decoration: none;
+  color: #1a1a1a;
+}
+
+#TOC a::after {
+  content: leader(".") target-counter(attr(href), page);
+}
+
+/* Cada apartado principal (##) empieza en página nueva */
+h2 {
+  page-break-before: always;
+  break-before: page;
+  page-break-after: avoid;
+  break-after: avoid;
+  margin-top: 0;
+  padding-top: 0.2em;
+  font-size: 16pt;
+}
+
+/* Anclas HTML antes de apartados numerados (refuerzo para impresión) */
+a[id^="apartado-"] {
+  display: block;
+  page-break-before: always;
+  break-before: page;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+}
+
+h3 {
+  page-break-after: avoid;
+}
+
+table, pre, blockquote {
+  page-break-inside: avoid;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  page-break-inside: avoid;
+}
+
+@media screen {
+  #TOC a::after {
+    content: none;
+  }
+}
