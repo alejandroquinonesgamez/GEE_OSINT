@@ -145,6 +145,22 @@ dnsenum grupo-gee.com
 
 ![Enumeración DNS básica de grupo-gee.com con dnsenum](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum.png)
 
+**Paso 3.** Enumeración de TLD alternativos con `dnsrecon` (base del nombre sin TLD):
+
+```bash
+dnsrecon -t tld -d grupo-gee
+```
+
+Salida relevante (ver también `Capturas/OSINT/dnsrecon_tld_grupo-gee.txt`):
+
+| Dominio encontrado | IP | Relevancia |
+|--------------------|-----|------------|
+| `grupo-gee.com` | 164.138.212.77 | Dominio corporativo activo |
+| `grupo-gee.es` | 15.197.148.33 / 3.33.130.190 | ccTLD español; verificar titularidad |
+| `grupo-gee.net` | 15.197.225.128 / 3.33.251.168 | Posible dominio defensivo o parking |
+
+> **Captura pendiente:** terminal con `dnsrecon -t tld -d grupo-gee` → `dnsrecon_tld_grupo-gee.png`
+
 ### Inventario ampliado de dominios y presencia web
 
 A partir del análisis pasivo (documentación corporativa, web pública y resolución DNS), se construye el inventario del conglomerado. Coincide con el planteamiento supervisado del trabajo de footprinting (apartados 1 y 2):
@@ -499,6 +515,18 @@ El **cache snooping** tuvo éxito parcial: algunos servidores DNS recursivos o a
 
 **Recomendaciones** (según material de la unidad): restringir la recursión DNS a clientes autorizados, deshabilitar respuestas a consultas de terceros y monitorizar consultas anómalas al puerto 53/udp.
 
+### Resultados y análisis (vulnerabilidades DNS)
+
+La **transferencia de zona** no es explotable en ningún NS probado (GoDaddy y Puntum). El **cache snooping** obtuvo resultados parciales en `97.74.106.7`, `164.138.212.77` y `97.74.107.28`, lo que puede indicar resolución reciente de dominios del grupo en esos resolvers. La configuración AXFR es adecuada; el riesgo residual está en la filtración de actividad vía caché DNS, no en la divulgación masiva de zonas.
+
+Comando adicional de confirmación AXFR:
+
+```bash
+dig @ns13.domaincontrol.com grupo-gee.com axfr
+```
+
+> **Captura pendiente:** salida de `dig axfr` → `dig_axfr_grupo-gee.png`
+
 ---
 
 ## 6. Obtención de rangos de IPs y nombres de redes (netnames)
@@ -518,6 +546,8 @@ whois -h whois.ripe.net 82.159.201.20
 ```
 
 ![WHOIS RIPE de 164.138.212.77 (Cyberneticos)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/whois%20164_138.png)
+
+> **Captura pendiente:** `whois -h whois.ripe.net 82.159.201.20` → `whois 82_159_201.png`
 
 ![WHOIS ARIN de 97.74.106.7 (GoDaddy)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/whois%2097_74.png)
 
@@ -544,6 +574,7 @@ exiftool Capturas/OSINT/GEE-P-SGI-01-POLITICA-GEE.pdf
 | IP consultada | Netname | Inetnum / CIDR | ASN | Organización | País |
 |---------------|---------|----------------|-----|--------------|------|
 | 164.138.212.77 | CYBERNETICOS3 | 164.138.212.0 – 164.138.212.255 (/24) | AS198968 | Cyberneticos.com CPD | ES |
+| 82.159.201.20 | ES-ONO-20031202 | 82.159.0.0 – 82.159.255.255 (/16) | AS6739 | VODAFONE ONO, S.A. | ES |
 | 97.74.106.7 | GO-DADDY-COM-LLC | 97.74.0.0 – 97.74.255.255 (/16) | — | GoDaddy.com, LLC | US |
 | MX Outlook | — | 52.96.0.0/12 | AS8075 | Microsoft Corporation | IE |
 
@@ -562,7 +593,19 @@ El bloque **82.159.201.0/24** concentra la mayoría de subdominios internos (int
 
 #### Resolución inversa
 
-`dnsenum` ejecutó búsqueda inversa sobre 1024 IPs en los rangos de `greelocal.com` y sobre el /24 `164.138.212.0/24` (dominio `grupo-gee.com`) sin obtener PTR útiles (`0 results`), lo que limita el descubrimiento adicional por rDNS.
+```bash
+host -t ptr 82.159.201.20
+host -t ptr 164.138.212.77
+```
+
+| IP | PTR (nombre inverso) |
+|----|----------------------|
+| 82.159.201.20 | `greeperi01.greelocal.com` |
+| 164.138.212.77 | `servidor1.puntumconsulting.com` |
+
+El PTR de **82.159.201.20** confirma el vínculo entre la red **Vodafone ONo** y la plataforma **greelocal.com** (`greeperi01`). `dnsenum` ejecutó además búsqueda inversa masiva sobre 1024 IPs en rangos de `greelocal.com` y el /24 `164.138.212.0/24` sin PTR adicionales (`0 results`).
+
+> **Captura pendiente:** salida de `host -t ptr` → `host_ptr_interno.png`
 
 #### Infraestructura interna revelada por metadatos PDF
 
@@ -636,9 +679,23 @@ Las técnicas OSINT pasivas **no sustituyen** al reconocimiento DNS, pero **refu
 | **NS** | GoDaddy (mayoría) y Puntum Consulting (iberdata.pt) |
 | **MX** | Microsoft 365 centralizado; SPF hard fail en grupo-gee.com |
 | **Vulnerabilidades DNS** | AXFR no explotable; cache snooping parcialmente exitoso |
-| **Rangos IP** | 164.138.212.0/24, 82.159.201.0/24, 82.223.212.0/24, 195.23.128.0/24 |
+| **Rangos IP** | Cyberneticos /24; **Vodafone ONO** 82.159.0.0/16 (servicios internos); 82.223.212.0/24; 195.23.128.0/24 |
 | **OSINT / metadatos** | Emails (Hunter, theHarvester), PDFs públicos, servidor `greedatos`, perfiles LinkedIn |
 | **Credenciales** | `talento@geelectromedico.com` sin brechas en HIBP |
+
+### Técnicas pasivas y activas (criterio RA 3.a)
+
+| Técnica | Herramienta / método | Tipo | Deja rastro en el objetivo |
+|---------|----------------------|------|----------------------------|
+| DNSDumpster, Google Dorks | Web / buscador | Pasiva | No |
+| theHarvester, Hunter.io, LinkedIn | OSINT | Pasiva | No |
+| Análisis PDF + ExifTool | Metadatos | Pasiva | No |
+| Have I Been Pwned | Consulta email | Pasiva | No |
+| recon-ng (Hackertarget) | API / scraping | Pasiva | Mínimo |
+| `dnsenum`, `dig`, `dnsrecon` | Consultas DNS directas | Activa | Sí |
+| `nmap` dns-cache-snoop.nse | UDP/53 al NS | Activa | Sí |
+
+**RA 3.a:** Se ha recopilado información sobre la red y sistemas del objetivo mediante **técnicas pasivas** (fuentes abiertas, DNSDumpster, documentos públicos, Hunter.io) complementadas con técnicas activas DNS para validar subdominios y servidores.
 
 ### Conclusiones
 

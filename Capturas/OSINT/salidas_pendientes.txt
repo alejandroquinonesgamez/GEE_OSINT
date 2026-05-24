@@ -1,0 +1,180 @@
+============================================================
+WHOIS 82.159.201.20 (RIPE)
+============================================================
+% This is the RIPE Database query service.
+% The objects are in RPSL format.
+%
+% The RIPE Database is subject to Terms and Conditions.
+% See https://docs.db.ripe.net/terms-conditions.html
+
+% Note: this output has been filtered.
+%       To receive output for a database update, use the "-B" flag.
+
+% Information related to '82.159.0.0 - 82.159.255.255'
+
+% Abuse contact for '82.159.0.0 - 82.159.255.255' is 'abuse@corp.vodafone.es'
+
+inetnum:        82.159.0.0 - 82.159.255.255
+netname:        ES-ONO-20031202
+org:            ORG-OA4-RIPE
+country:        ES
+admin-c:        OIM1-RIPE
+tech-c:         OIM1-RIPE
+status:         ALLOCATED PA
+mnt-by:         RIPE-NCC-HM-MNT
+mnt-by:         AIRTELNET-MNT
+created:        2025-11-10T10:22:52Z
+last-modified:  2026-03-18T14:28:46Z
+source:         RIPE # Filtered
+
+organisation:   ORG-OA4-RIPE
+org-name:       VODAFONE ONO, S.A.
+country:        ES
+reg-nr:         A62186556
+org-type:       LIR
+address:        C/ AVILA, 35-41
+address:        08005
+address:        Barcelona
+address:        SPAIN
+phone:          +34 607133333
+fax-no:         +34 935020509
+admin-c:        OIM1-RIPE
+admin-c:        FJ1656-RIPE
+admin-c:        DHC4-RIPE
+admin-c:        RRV18-RIPE
+mnt-ref:        RIPE-NCC-HM-MNT
+mnt-ref:        AIRTELNET-MNT
+mnt-by:         RIPE-NCC-HM-MNT
+mnt-by:         AIRTELNET-MNT
+abuse-c:        OA1773-RIPE
+created:        2004-04-17T11:17:55Z
+last-modified:  2026-05-13T06:28:26Z
+source:         RIPE # Filtered
+
+role:           VODAFONE IP MANAGER
+address:        Avenida de Am�rica 115
+address:        28042
+address:        Madrid
+address:        Spain
+phone:          +34 607 13 33 33
+abuse-mailbox:  abuse@corp.vodafone.es
+admin-c:        DHC4-RIPE
+admin-c:        RRV18-RIPE
+tech-c:         DHC4-RIPE
+tech-c:         RRV18-RIPE
+nic-hdl:        OIM1-RIPE
+mnt-by:         AIRTELNET-MNT
+created:        2002-09-25T09:49:21Z
+last-modified:  2026-03-18T10:02:14Z
+source:         RIPE # Filtered
+
+% Information related to '82.159.192.0/18AS6739'
+
+route:          82.159.192.0/18
+descr:          Ono
+descr:          www.ono.es
+descr:          CABLEUROPA S.A.U
+descr:          C/ Emisora, 20
+descr:          28224 Pozuelo de Alarc�n
+descr:          Madrid
+descr:          SPAIN
+origin:         AS6739
+mnt-by:         ONO-MNT
+created:        2009-10-08T11:48:28Z
+last-modified:  2014-04-17T10:02:30Z
+source:         RIPE
+
+% This query was served by the RIPE Database Query Service version 1.122.1 (BUSA)
+
+
+
+
+============================================================
+WHOIS 164.138.212.77 (RIPE)
+============================================================
+% This is the RIPE Database query service.
+% The objects are in RPSL format.
+%
+% The RIPE Database is subject to Terms and Conditions.
+% See https://docs.db.ripe.net/terms-conditions.html
+
+% Note: this output has been filtered.
+%       To receive output for a database update, use the "-B" flag.
+
+% Information related to '164.138.212.0 - 164.138.212.255'
+
+% Abuse contact for '164.138.212.0 - 164.138.212.255' is 'abuse@cyberneticos.com'
+
+inetnum:        164.138.212.0 - 164.138.212.255
+netname:        CYBERNETICOS3
+descr:          Cyberneticos.com CPD
+country:        ES
+admin-c:        DS10833-RIPE
+tech-c:         DS10833-RIPE
+abuse-c:        AD10768-RIPE
+status:         ASSIGNED PA
+mnt-by:         MNT-CYBER2
+mnt-lower:      MNT-CYBER2
+mnt-routes:     MNT-CYBER2
+created:        2014-09-23T09:56:51Z
+last-modified:  2026-02-09T15:12:29Z
+source:         RIPE
+
+person:         Departamento Soporte
+address:        Avenida Isaac Newton 288 Nave 8
+address:        El Puerto de Santa Mar�a
+address:        11500 C�diz
+phone:          +34902003956
+nic-hdl:        DS10833-RIPE
+mnt-by:         soporte
+created:        2012-03-14T11:00:41Z
+last-modified:  2024-01-09T22:42:12Z
+source:         RIPE # Filtered
+
+% Information related to '164.138.212.0/23AS198968'
+
+route:          164.138.212.0/23
+descr:          cyberneticos bgp c3
+origin:         AS198968
+mnt-by:         MNT-CYBER2
+created:        2014-09-23T10:21:53Z
+last-modified:  2014-09-23T10:21:53Z
+source:         RIPE
+
+% This query was served by the RIPE Database Query Service version 1.122.1 (ABERDEEN)
+
+
+
+
+
+============================================================
+DIG AXFR grupo-gee.com @ ns13.domaincontrol.com
+============================================================
+RESULTADO: ValueError - 
+
+============================================================
+DIG AXFR iberdata.pt @ ns1.puntumconsulting.com
+============================================================
+RESULTADO: ValueError - 
+
+============================================================
+host -t ptr 82.159.201.20
+============================================================
+greeperi01.greelocal.com.
+
+============================================================
+host -t ptr 164.138.212.77
+============================================================
+servidor1.puntumconsulting.com.
+
+============================================================
+host mx.grupogee-com01c.mail.protection.outlook.com (A)
+============================================================
+52.101.68.3
+52.101.68.25
+52.101.73.30
+52.101.68.32
+
+============================================================
+DNSRECON -t tld -d gee
+============================================================

@@ -1,0 +1,15 @@
+﻿[*] tld: Performing TLD Brute force Enumeration against grupo-gee...
+[*] The operation could take up to: 00:01:35
+[+] 	 A grupo-gee.com 164.138.212.77
+[+] 	 A grupo-gee.net 15.197.225.128
+[+] 	 A grupo-gee.net 3.33.251.168
+[+] 	 A grupo-gee.es 15.197.148.33
+[+] 	 A grupo-gee.es 3.33.130.190
+[+] 	 A grupo-gee.ph 45.79.222.138
+[+] 	 A grupo-gee.ac.jobs 64.190.63.222
+[+] 	 A grupo-gee.vg 88.198.29.97
+[+] 	 A grupo-gee.be.biz 13.248.169.48
+[+] 	 A grupo-gee.be.biz 76.223.54.146
+[+] 	 A grupo-gee.bg.com 13.225.61.36
+[+] 	 A grupo-gee.ws 64.70.19.203
+[+] 12 Records Found
