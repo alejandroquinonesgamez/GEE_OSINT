@@ -1,4 +1,6 @@
 # Material auxiliar y duplicados (fuera de Capturas/OSINT)
+_build/
+Informe-Practica-OSINT.pdf
 _extracted/
 Guia_Reconocimiento_DNS_GEE.md
 Informe-Practica-Nmap.md
