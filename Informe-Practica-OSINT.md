@@ -43,10 +43,17 @@ Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache
 | 2 | [Obtención de dominios TLD](#apartado-2) |
 | 3 | [Obtención de subdominios](#apartado-3) |
 | 4 | [Obtención de NS y MX](#apartado-4) |
-| 5 | [Testeo de vulnerabilidades DNS](#apartado-5) |
+| 5 | [Testeo de vulnerabilidades (AXFR y cache snooping)](#apartado-5) |
 | 6 | [Obtención de rangos IP y netnames](#apartado-6) |
-| 7 | [Reconocimiento pasivo complementario OSINT](#apartado-7) |
+| 7 | [Reconocimiento pasivo complementario (OSINT)](#apartado-7) |
 | 8 | [Resumen y conclusiones](#apartado-8) |
+
+**Convenciones de lectura**
+
+- **Pasiva / activa:** las técnicas pasivas no generan consultas directas al DNS del objetivo (buscadores, DNSDumpster, PDFs públicos). Las activas (`dnsenum`, `dig`, `nmap` NSE) sí dejan trazas en logs del proveedor DNS.
+- **Evidencias:** cada captura corresponde a un fichero en `Capturas/OSINT/` del repositorio [GEE_OSINT](https://github.com/alejandroquinonesgamez/GEE_OSINT). Los extractos largos (p. ej. `dnsrecon_tld_grupo-gee.txt`) evitan adjuntar logs completos al informe.
+- **Marcas en capturas:** cuando el informe indica **recuadro rojo** o **subrayado rojo**, se refiere a anotaciones añadidas en la imagen para orientar al lector (comando ejecutado, dato relevante o resultado a interpretar).
+- **Pasos numerados:** en los apartados 1–6, `**Paso N.**` ordena el procedimiento; los subapartados 5.1/5.2 y 7.1–7.3 agrupan pruebas relacionadas sin renumerar el informe global.
 
 ---
 
@@ -64,7 +71,7 @@ Para esta práctica se analiza **GEE** (*Grupo Empresarial Electromédico*), org
 
 ### Criterios de idoneidad
 
-El blanco debe ser una **empresa de tamaño mediano-grande** con información suficiente para el reconocimiento DNS (véase [Alcance y estructura](#alcance-y-estructura-del-informe)). GEE cumple ese perfil: **múltiples dominios y subdominios**, **servicios expuestos** (web, correo, oficina virtual), **infraestructura en varios proveedores** (GoDaddy, Puntum, Microsoft 365) y **rangos consultables en RIR**. El análisis DNS activo complementa la OSINT pasiva y cubre los apartados del [2](#apartado-2) al [6](#apartado-6) de este informe.
+El blanco debe ser una **empresa de tamaño mediano-grande** con información suficiente para el reconocimiento DNS (véase [Alcance y estructura](#alcance-y-estructura-del-informe)). GEE cumple ese perfil: **múltiples dominios y subdominios**, **servicios expuestos** (web, correo, oficina virtual), **infraestructura en varios proveedores** (GoDaddy, Puntum, Microsoft 365) y **rangos consultables en RIR**. El análisis DNS activo complementa la OSINT pasiva y cubre los apartados [2](#apartado-2) a [6](#apartado-6) de este informe.
 
 ### Información general de la empresa (OSINT)
 
@@ -92,9 +99,11 @@ La infraestructura observada combina hosting en España (**Cyberneticos**, Cádi
 
 ### Procedimiento
 
-Se inicia el reconocimiento pasivo con la herramienta web **DNSDumpster**, introduciendo el dominio raíz `grupo-gee.com` como punto de partida del análisis.
+**Paso 1.** Reconocimiento pasivo inicial en **DNSDumpster** sobre el dominio raíz `grupo-gee.com`, como punto de partida del análisis:
 
-En la siguiente captura se muestra la **primera consulta en DNSDumpster** sobre `grupo-gee.com`, utilizada para obtener de forma pasiva un mapa inicial de registros DNS (A, NS, MX) sin interactuar con los servidores autoritativos del objetivo mediante herramientas de línea de comandos.
+En la siguiente captura se muestra la consulta en DNSDumpster, utilizada para obtener de forma pasiva un mapa inicial de registros DNS (A, NS, MX) sin interactuar con los servidores autoritativos del objetivo mediante herramientas de línea de comandos.
+
+**Qué observar en la captura:** panel central con el dominio consultado; bloques de registros **A** (IP de la web), **NS** (`domaincontrol.com` → GoDaddy), **MX** (cola hacia `mail.protection.outlook.com`) y, si aparece, **TXT/SPF**. Esa vista orienta los apartados [4](#apartado-4) (NS/MX) y [3](#apartado-3) (mapas detallados por dominio).
 
 ![Consulta inicial en DNSDumpster para grupo-gee.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/DNSDumpster.png)
 
@@ -122,6 +131,8 @@ La siguiente captura muestra el resultado de `site:grupo-gee.com filetype:pdf`, 
 
 ![Google Dorks: documentos PDF en grupo-gee.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/google_dorks_pdf.png)
 
+**Nota:** los PDFs listados son **públicamente indexables**; no implica que el grupo los haya publicado expresamente para descarga abierta, pero sí que un atacante puede localizarlos sin autenticación. El análisis de metadatos con ExifTool se documenta en el [apartado 6](#apartado-6).
+
 Entre los ficheros públicos figuran el *Código de conducta* y la *política integrada GEE*, que permiten identificar filiales (**MANTELEC, S.A.**) y otra sede en **Tudela (Navarra)**.
 
 **Paso 4.** Revisión del documento *Código de conducta* (GEE-D-RSC-01), descargado desde la web del grupo:
@@ -134,7 +145,7 @@ El documento confirma que el **Grupo Empresarial Electromédico (GEE)** —funda
 
 ### Resultados y análisis
 
-Grupo GEE cumple los requisitos del [apartado 1](#apartado-1): es una organización con múltiples dominios, subdominios publicados, servidores NS/MX diferenciados y rangos de IP consultables en RIR. La diversidad de TLD (`.com`, `.pt`) y de proveedores DNS facilita comparar configuraciones y detectar posibles debilidades (transferencia de zona, cache snooping), abordadas en el [apartado 5](#apartado-5).
+Grupo GEE cumple los criterios de idoneidad descritos: es una organización con múltiples dominios, subdominios publicados, servidores NS/MX diferenciados y rangos de IP consultables en RIR. La diversidad de TLD (`.com`, `.pt`) y de proveedores DNS facilita comparar configuraciones y detectar posibles debilidades (transferencia de zona, cache snooping), abordadas en el [apartado 5](#apartado-5).
 
 ---
 
@@ -178,6 +189,8 @@ theharvester -d iberdata.pt -l 500 -b duckduckgo,yahoo
 
 La captura recoge la salida de **`theharvester`** sobre varios dominios del grupo. Esta herramienta agrega correos, hosts y metadatos desde buscadores (DuckDuckGo, Yahoo) de forma pasiva, para contrastar dominios activos antes de la enumeración DNS activa.
 
+**Qué observar en la captura:** por cada dominio, líneas de **emails** encontrados, **hosts/subdominios** citados en fuentes abiertas y posibles IPs. Dominios sin resultados (p. ej. `asimesa.com`) indican menor huella indexada, no necesariamente inactividad DNS.
+
 ![Resultados de theHarvester sobre dominios del grupo](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/harvester.png)
 
 **Paso 2.** Análisis de resolución DNS inicial con `dnsenum` sin diccionario sobre el dominio corporativo:
@@ -197,6 +210,8 @@ En la siguiente imagen se observa la ejecución de **`dnsenum grupo-gee.com`** (
 ```bash
 dnsrecon -t tld -d grupo-gee
 ```
+
+**Nota sobre `dnsrecon -t tld`:** la herramienta prueba muchas extensiones (`grupo-gee.<tld>`) y registra cualquier respuesta A/AAAA, incluidos dominios de terceros o parking que **no pertenecen** al grupo. Por eso el informe **no** incorpora el log íntegro de 5213 líneas.
 
 La enumeración TLD tarda varios minutos (estimación inicial ~56 min) y genera **5213 registros** en la salida bruta; la mayoría son **falsos positivos** (p. ej. `grupo-gee.s3.amazonaws.com`, `grupo-gee.yolasite.com`, `grupo-gee.lib.ee` → `127.0.0.1`). Para el análisis se conservan solo los TLD con nombre `grupo-gee.<tld>` y resolución coherente (extracto en `Capturas/OSINT/dnsrecon_tld_grupo-gee.txt`: **12 registros**).
 
@@ -279,9 +294,9 @@ Descubrir nombres de host y subdominios públicos del grupo mediante técnicas a
 
 ### Procedimiento
 
-#### Paso 1. Enumeración con dnsenum y diccionario
+**Paso 1.** Enumeración con dnsenum y diccionario
 
-Se emplea el diccionario `Capturas/OSINT/mini_dict.txt` (~5000 entradas) con `dnsenum`. Sobre el dominio raíz `grupo-gee.com` el brute force aporta subdominios adicionales (`www`, `autodiscover`) y búsqueda inversa en el /24 de Cyberneticos:
+Se emplea el diccionario `Capturas/OSINT/mini_dict.txt` (~5000 entradas) con `dnsenum`. La fuerza bruta DNS envía consultas de tipo **A** por cada palabra del diccionario ante el servidor autoritativo; genera tráfico **activo** y puede aparecer en logs del proveedor. Sobre el dominio raíz `grupo-gee.com` el brute force aporta subdominios adicionales (`www`, `autodiscover`) y búsqueda inversa en el /24 de Cyberneticos:
 
 ```bash
 dnsenum grupo-gee.com -f Capturas/OSINT/mini_dict.txt
@@ -297,6 +312,8 @@ dig autodiscover.grupo-gee.com A +short
 La siguiente captura documenta **`dnsenum grupo-gee.com -f Capturas/OSINT/mini_dict.txt`**: fuerza bruta de subdominios con diccionario (~5000 entradas), descubrimiento de `www` y `autodiscover`, e inferencia del /24 **164.138.212.0/24** (Cyberneticos).
 
 ![Brute force DNS sobre grupo-gee.com con mini_dict.txt](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum%20Dict.png)
+
+**Qué observar:** al final de la salida, la sección *Brute forcing with* lista FQDN resueltos; más abajo, *Performing reverse lookup* agrupa IPs del /24. Los subdominios en **negrita** o con IP asignada son los hallazgos accionables.
 
 Se repite el procedimiento sobre el resto de dominios del grupo:
 
@@ -323,7 +340,7 @@ dnsenum ibermansa.com -f Capturas/OSINT/mini_dict.txt
 
 ![Brute force DNS sobre ibermansa.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum%20Iberman.png)
 
-#### Paso 2. Reconocimiento con recon-ng (Hackertarget)
+**Paso 2.** Reconocimiento con recon-ng (Hackertarget)
 
 Se configura **recon-ng** con workspace `gee`, prueba del módulo Bing (sin resultados) e instalación del módulo **Hackertarget** para consulta pasiva de hosts.
 
@@ -344,13 +361,17 @@ show hosts
 
 La primera captura muestra la ejecución del módulo **`recon/domains-hosts/hackertarget`** en **recon-ng** sobre `grupo-gee.com`, consultando la API de Hackertarget para listar subdominios sin fuerza bruta local.
 
+**Qué observar:** en la consola de recon-ng, el módulo cargado (`hackertarget`), el valor de `SOURCE` y las líneas *Adding host* o equivalentes que confirman hosts importados al workspace.
+
 ![Módulo Hackertarget sobre grupo-gee.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/Hacertarget%20grupo-gee.png)
 
 La segunda captura presenta el resultado de **`show hosts`** en el workspace `gee`, con los FQDN consolidados de todos los dominios cargados (grupo-gee, ibermansa, iberdata, geelectromedico, greelocal).
 
+**Qué observar:** tabla de hosts con columnas *Host* / *IP* (según versión); permite cruzar subdominios pasivos (Hackertarget) con los obtenidos por fuerza bruta en el Paso 1.
+
 ![Hosts consolidados en workspace gee](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/Hackertarget%20all.png)
 
-#### Paso 3. Sublist3r (enumeración pasiva multi-fuente)
+**Paso 3.** Sublist3r (enumeración pasiva multi-fuente)
 
 ```bash
 sublist3r -d grupo-gee.com
@@ -358,11 +379,15 @@ sublist3r -d grupo-gee.com
 
 La captura documenta un intento de **`sublist3r -d grupo-gee.com`** (fuentes pasivas como VirusTotal). La ejecución **falló** por error de API; se deja como evidencia negativa y las fuentes restantes cubren el descubrimiento de subdominios.
 
+**Qué observar:** mensaje de error o *IndexError* / peticiones bloqueadas en la salida; demuestra que las herramientas multi-fuente dependen de APIs de terceros y pueden quedar inutilizables sin clave o con rate limiting.
+
 ![Intento de enumeración con Sublist3r (error)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/Sublist3r.png)
 
-#### Paso 4. DNSDumpster (reconocimiento pasivo)
+**Paso 4.** DNSDumpster (reconocimiento pasivo por dominio)
 
 Consultas en https://dnsdumpster.com para cada dominio principal. Por cada dominio se conservan tres vistas: **mapa general**, **tabla de registros** y **grafo de relaciones** (hosts, NS, MX y enlaces entre nodos).
+
+**Lectura de las tres capturas por dominio:** (1) *mapa* — visión global y proveedores; (2) *detalle* — tabla A/NS/MX/TXT y banners de servicio cuando DNSDumpster los infiere; (3) *grafo* — relaciones entre nodos (útil para ver concentración de hosts en la misma IP o dependencias de correo).
 
 **Dominio `grupo-gee.com`**
 
@@ -457,6 +482,14 @@ Consultas en https://dnsdumpster.com para cada dominio principal. Por cada domin
 | `ns1/ns2.iberdata.pt` | 194.79.69.x | NS internos declarados |
 | `autodiscover.iberdata.pt` | Microsoft 365 | Autodiscover |
 
+### Criterio de priorización (pentest)
+
+| Prioridad | Subdominio / patrón | Motivo |
+|-----------|---------------------|--------|
+| Alta | `intranet.*`, `crm.*`, `adfs.*`, `sso.*`, `oficinavirtual.*` | Gestión, identidad y acceso remoto |
+| Media | `sftp.*`, `webmail.*`, `smtp.*` | Transferencia de ficheros y correo legacy |
+| Baja | `www.*`, `autodiscover.*` | Presencia estándar; autodiscover apunta a cloud |
+
 ### Resultados y análisis
 
 La combinación de **dnsenum** (fuerza bruta) y **Hackertarget** (vía recon-ng) proporciona la mayor cantidad de subdominios accionables. Destacan:
@@ -476,9 +509,15 @@ La combinación de **dnsenum** (fuerza bruta) y **Hackertarget** (vía recon-ng)
 
 Identificar los servidores DNS autoritativos y de correo del grupo, analizar su proveedor y las implicaciones de seguridad.
 
+### Marco teórico breve
+
+- **NS:** indican qué servidores son **autoritativos** para la zona; quien controla el NS puede modificar todos los registros del dominio.
+- **MX:** definen a dónde se entrega el correo entrante (campo de prioridad: menor número = mayor preferencia).
+- **SPF (TXT):** lista qué servidores pueden enviar correo en nombre del dominio; `-all` rechaza el resto (política estricta).
+
 ### Procedimiento
 
-**Paso 1.** Consulta directa con `dig`:
+**Paso 1.** Consulta directa con `dig` (el modificador `+short` devuelve solo valores, sin cabeceras, para comparar dominios en una sola captura):
 
 ```bash
 dig ns grupo-gee.com +short
@@ -493,9 +532,11 @@ dig mx iberdata.pt +short
 
 La captura agrupa la salida de los comandos **`dig ns … +short`** y **`dig mx … +short`** sobre los cuatro dominios principales. Permite comparar de un vistazo la delegación DNS (GoDaddy vs Puntum) y la centralización del correo en **Microsoft 365**.
 
+**Qué observar:** líneas `ns*.domaincontrol.com` frente a `puntumconsulting.com`; en MX, nombres `*.mail.protection.outlook.com` o `*.mail.eo.outlook.com` confirman **Microsoft 365** en todos los dominios operativos.
+
 ![Registros NS y MX de los cuatro dominios principales](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/ns%2Bmx.png)
 
-**Paso 2.** Verificación complementaria con `dnsenum` (secciones Name Servers y Mail Servers de cada dominio).
+**Paso 2.** Verificación complementaria con `dnsenum` (secciones *Name Servers* y *Mail Servers* de cada dominio), ya documentadas en capturas del [apartado 2](#apartado-2) y [3](#apartado-3); aquí se contrastan los mismos NS/MX con otra herramienta.
 
 ### Resultados
 
@@ -535,7 +576,7 @@ La política **-all** (hard fail) indica que solo los servidores autorizados de 
 
 ### Resultados y análisis
 
-El correo del grupo está **centralizado en Microsoft 365**, lo que reduce la superficie de servidores SMTP propios expuestos, salvo registros legacy en `iberdata.pt` (195.23.128.0/24). La delegación DNS en GoDaddy implica dependencia de un proveedor global; los NS de GoDaddy serán objetivo de las pruebas de transferencia de zona y cache snooping en el apartado siguiente.
+El correo del grupo está **centralizado en Microsoft 365**, lo que reduce la superficie de servidores SMTP propios expuestos, salvo registros legacy en `iberdata.pt` (195.23.128.0/24). La delegación DNS en GoDaddy implica dependencia de un proveedor global; los NS de GoDaddy serán objetivo de las pruebas de transferencia de zona y cache snooping en el [apartado 5](#apartado-5).
 
 ---
 
@@ -547,11 +588,17 @@ El correo del grupo está **centralizado en Microsoft 365**, lo que reduce la su
 
 Comprobar si los servidores DNS permiten transferencia de zona (AXFR) y si es posible realizar *cache snooping* para inferir dominios consultados recientemente.
 
+### Procedimiento
+
+El testeo se divide en dos fases, documentadas en los apartados 5.1 y 5.2: primero la **transferencia de zona (AXFR)** y después el **DNS Cache Snooping**.
+
+**Recordatorio:** AXFR intenta copiar **toda la zona DNS** (todos los registros) desde el servidor autoritativo. El *cache snooping* no descarga la zona, sino que **infiere** si un nombre fue resuelto recientemente consultando la caché del resolver (técnica de divulgación de información, no de explotación directa).
+
 ### 5.1 Transferencia de zona (AXFR)
 
 #### Procedimiento
 
-`dnsenum` intenta automáticamente AXFR contra los NS descubiertos. Comandos de referencia adicionales:
+`dnsenum` intenta automáticamente AXFR contra los NS descubiertos. En GoDaddy es habitual ver `AXFR record query failed: corrupt packet` o respuestas vacías: equivale a **zona no transferible** para el cliente que consulta. Comandos de referencia adicionales:
 
 ```bash
 dig @ns13.domaincontrol.com grupo-gee.com axfr
@@ -561,7 +608,19 @@ dnsrecon -a -d grupo-gee.com
 
 Evidencia en enumeración de `grupo-gee.com` (misma salida que en el [apartado 2](#apartado-2)): `dnsenum` intenta AXFR automáticamente contra los NS de GoDaddy. La captura evidencia el **recuadro rojo** con el comando y los mensajes `AXFR record query failed: corrupt packet`.
 
-![Intento de transferencia de zona en grupo-gee.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum.png)
+![Intento de transferencia de zona en grupo-gee.com (dnsenum)](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dnsenum.png)
+
+Como confirmación adicional se ejecutó `dig @ns13.domaincontrol.com grupo-gee.com axfr`:
+
+```bash
+dig @ns13.domaincontrol.com grupo-gee.com axfr
+```
+
+La captura siguiente muestra la salida de **`dig`**: errores de comunicación y *no servers could be reached*, coherente con **AXFR no permitido** frente a consultas no autorizadas.
+
+**Qué observar:** ausencia de bloque `; Transfer failed` con listado de registros; mensajes de timeout o cierre de sesión indican que el servidor **no entrega** la zona al origen de la consulta (comportamiento esperado en producción).
+
+![Transferencia de zona (AXFR) sobre grupo-gee.com — REFUSED](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dig_axfr_grupo-gee.png)
 
 #### Resultados
 
@@ -584,7 +643,7 @@ En todos los casos la **transferencia de zona no es explotable**. GoDaddy y Punt
 
 #### Procedimiento
 
-Se utiliza el script NSE `dns-cache-snoop` de Nmap sobre servidores DNS identificados, consultando si dominios del grupo (y `google.com` como control) están en caché:
+Se utiliza el script NSE `dns-cache-snoop` de Nmap sobre servidores DNS identificados, consultando si dominios del grupo (y `google.com` como control) están en caché. Se incluye `google.com` como **dominio de control**: si casi siempre aparece en caché y los del grupo solo a veces, la técnica distingue actividad reciente del blanco frente a tráfico genérico del resolver.
 
 ```bash
 sudo nmap -sU -p 53 --script dns-cache-snoop.nse \
@@ -635,16 +694,6 @@ El **cache snooping** tuvo éxito parcial: algunos servidores DNS recursivos o a
 
 La **transferencia de zona** no es explotable en ningún NS probado (GoDaddy y Puntum). El **cache snooping** obtuvo resultados parciales en `97.74.106.7`, `164.138.212.77` y `97.74.107.28`, lo que puede indicar resolución reciente de dominios del grupo en esos resolvers. La configuración AXFR es adecuada; el riesgo residual está en la filtración de actividad vía caché DNS, no en la divulgación masiva de zonas.
 
-Comando adicional de confirmación AXFR:
-
-```bash
-dig @ns13.domaincontrol.com grupo-gee.com axfr
-```
-
-La captura muestra la confirmación manual con **`dig @ns13.domaincontrol.com grupo-gee.com axfr`**: errores de comunicación y *no servers could be reached* / cierre de sesión, coherente con **AXFR no permitido** frente a consultas no autorizadas.
-
-![Transferencia de zona (AXFR) sobre grupo-gee.com — REFUSED](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/dig_axfr_grupo-gee.png)
-
 ---
 
 <a id="apartado-6"></a>
@@ -657,7 +706,7 @@ Determinar los bloques de direcciones IP (*inetnum*), nombres de red (*netname*)
 
 ### Procedimiento
 
-**Paso 1.** Consulta WHOIS sobre IPs clave:
+**Paso 1.** Consulta WHOIS sobre IPs clave (RIPE para rangos europeos; ARIN para bloques US de GoDaddy). WHOIS aporta *netname*, *inetnum*, ASN y contactos de abuso para el informe de red:
 
 ```bash
 whois 164.138.212.77
@@ -743,6 +792,8 @@ El PTR de **82.159.201.20** confirma el vínculo entre la red **Vodafone ONo** y
 
 La captura muestra la ejecución de **`host -t ptr`** sobre **82.159.201.20** y **164.138.212.77**, comandos de resolución inversa que confirman los nombres `greeperi01.greelocal.com` y `servidor1.puntumconsulting.com` respectivamente.
 
+**Qué observar:** la línea `domain name pointer` asocia la IP con un FQDN; en pentest, el PTR ayuda a **nombrar** activos internos cuando solo se conoce la dirección (p. ej. correlación Vodafone ONO ↔ greelocal).
+
 ![Resolución inversa PTR de 82.159.201.20 → greeperi01.greelocal.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/host_ptr_interno.png)
 
 #### Infraestructura interna revelada por metadatos PDF
@@ -774,7 +825,7 @@ Esta segmentación orienta el plan de ataque: priorizar el escaneo de **82.159.2
 
 ### Objetivo
 
-Complementar el reconocimiento DNS de los [apartados 1 a 6](#apartado-1) con técnicas pasivas adicionales que alimentan la inteligencia sobre personas, correos, documentos y posibles vectores de ataque vinculados a los dominios ya identificados.
+Complementar el reconocimiento DNS de los apartados [1](#apartado-1) a [6](#apartado-6) con técnicas pasivas adicionales que alimentan la inteligencia sobre personas, correos, documentos y posibles vectores de ataque vinculados a los dominios ya identificados.
 
 ### 7.1 Perfiles profesionales (Google Dorks + LinkedIn)
 
@@ -784,6 +835,8 @@ site:es.linkedin.com/in/ "Grupo Empresarial Electromédico"
 
 En la siguiente captura se aplica el dork anterior para localizar **perfiles de LinkedIn** vinculados al grupo; es reconocimiento pasivo de personas sin contactar con la infraestructura DNS del objetivo.
 
+**Qué observar:** resultados con nombre, cargo y ubicación; útiles para **ingeniería social** autorizada en un pentest, no para ataque no consentido.
+
 ![Google Dorks: empleados en LinkedIn](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/google_dorks_ppl.png)
 
 Se localizan perfiles con cargos relevantes (p. ej. **Director General**, gestores de proyecto en electromedicina, personal técnico en Madrid y Málaga). Esta información complementa la enumeración DNS al identificar posibles objetivos de ingeniería social o spear phishing.
@@ -792,13 +845,15 @@ Se localizan perfiles con cargos relevantes (p. ej. **Director General**, gestor
 
 Consulta en [Hunter.io](https://hunter.io) sobre `geelectromedico.com` y dominios relacionados:
 
-La captura muestra la búsqueda en **Hunter.io** filtrando dominios del conglomerado (`geelectromedico.com`, `ibermansa.com`, `iberdata.com`, `grupo-gee.com`), con el fin de obtener correos corporativos y roles por departamento.
+La captura muestra la búsqueda en **Hunter.io** filtrando dominios del conglomerado (`geelectromedico.com`, `ibermansa.com`, `iberdata.pt`, `grupo-gee.com`), con el fin de obtener correos corporativos y roles por departamento.
+
+> **Nota:** en la interfaz de Hunter, la filial portuguesa puede figurar como `iberdata.com` en el bloque de *empresas relacionadas*; el dominio verificado en DNS durante la práctica es **`iberdata.pt`** ([apartado 2](#apartado-2)).
 
 **Marcas en la captura:** los **recuadros rojos** señalan (1) la herramienta Hunter, (2) el bloque de **empresas relacionadas** (GEE, Ibermansa, IberData), (3) el recuento de **39 correos** en el dominio principal y (4) la lista por departamentos, donde destaca el perfil de **administrador de infraestructura (IT)** como objetivo de alto valor en un pentest.
 
 ![Hunter.io: 39 correos y estructura por departamentos](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/hunter_io.png)
 
-Hunter.io reporta **39 direcciones** en `geelectromedico.com`, clasificadas en personas, decisores y cuentas genéricas. Destaca personal de **IT** (administrador de infraestructura), **ventas**, **soporte** y **dirección regional**, coherente con la sede en San Sebastián de los Reyes. Los dominios `ibermansa.com` e `iberdata.com` aparecen como asociados en la misma búsqueda.
+Hunter.io reporta **39 direcciones** en `geelectromedico.com`, clasificadas en personas, decisores y cuentas genéricas. Destaca personal de **IT** (administrador de infraestructura), **ventas**, **soporte** y **dirección regional**, coherente con la sede en San Sebastián de los Reyes. Los dominios `ibermansa.com` e `iberdata.pt` aparecen como asociados en la misma búsqueda.
 
 ### 7.3 Comprobación de filtraciones (Have I Been Pwned)
 
@@ -808,7 +863,7 @@ La imagen documenta la consulta en **Have I Been Pwned** sobre `talento@geelectr
 
 ![Have I Been Pwned: sin brechas para talento@geelectromedico.com](https://raw.githubusercontent.com/alejandroquinonesgamez/GEE_OSINT/main/Capturas/OSINT/hibp.png)
 
-**Resultado:** 0 brechas conocidas en la base de datos de HIBP. No implica ausencia total de riesgo, pero indica que esa cuenta no figura en filtraciones públicas indexadas por el servicio.
+**Resultado:** 0 brechas conocidas en la base de datos de HIBP. No implica ausencia total de riesgo (filtraciones no publicadas, bases privadas o cuentas no indexadas), pero indica que esa cuenta **no figura** en filtraciones públicas que HIBP agrega por nombre.
 
 ### Resultados y análisis
 
@@ -852,7 +907,7 @@ Se ha recopilado información sobre la red y sistemas del objetivo mediante **t�
 
 El reconocimiento sobre **Grupo GEE** combina **DNS** (pasivo y activo) con **OSINT** (Google, LinkedIn, Hunter.io, PDFs y metadatos). Las técnicas DNS —DNSDumpster, `dnsenum`, `dig`, `nmap` NSE, recon-ng— cartografían hosts y servicios; las pasivas complementarias aportan personas, correos, documentos internos filtrados y nombres de infraestructura (`greedatos`) no siempre visibles en registros DNS.
 
-En línea con el [apartado 8](#apartado-8) de este informe, GEE debe tratarse como **holding**: las interconexiones entre filiales (UTE, infraestructura compartida, oficina virtual en `greelocal.com`) amplían la superficie de ataque más allá del dominio raíz `grupo-gee.com`.
+En síntesis, GEE debe tratarse como **holding**: las interconexiones entre filiales (UTE, infraestructura compartida, oficina virtual en `greelocal.com`) amplían la superficie de ataque más allá del dominio raíz `grupo-gee.com`.
 
 **Aspectos positivos de la postura del objetivo:**
 
