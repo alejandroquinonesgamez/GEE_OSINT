@@ -17,7 +17,7 @@ Esta guía lista **todo lo que falta o conviene reforzar** respecto al [Enunciad
 
 | # | Tarea | Prioridad | ¿Captura? |
 |---|--------|-----------|-----------|
-| 1 | Tabla **pasivo vs activo** + mención **RA 3.a** en §8 | Alta | No (solo texto en informe) |
+| 1 | Tabla **pasivo vs activo** en §8 | Alta | ✅ Hecho |
 | 2 | **`dnsrecon -t tld`** con captura | Alta | ✅ Hecho (`dnsrecon_tld_grupo-gee.png` + `_2.png`) |
 | 3 | **`dig axfr`** dedicado (aparte de dnsenum) | Alta | ✅ Hecho (`dig_axfr_grupo-gee.png`) |
 | 4 | **WHOIS 82.159.201.20** + captura | Alta | ✅ Hecho (`whois 82_159_201_1.png`, `_2.png`) |
@@ -32,25 +32,9 @@ Esta guía lista **todo lo que falta o conviene reforzar** respecto al [Enunciad
 
 ## Parte A — Solo redacción (sin terminal)
 
-### A.1 Tabla pasivo vs activo + RA 3.a (§8)
+### A.1 Tabla pasivo vs activo (§8)
 
-Copia o adapta esto al final del **§8. Resumen y conclusiones**, antes de «Estrategia recomendada»:
-
-```markdown
-### Técnicas pasivas y activas (criterio RA 3.a)
-
-| Técnica | Herramienta / método | Tipo | Deja rastro en el objetivo |
-|---------|----------------------|------|----------------------------|
-| DNSDumpster, Google Dorks | Web / buscador | Pasiva | No |
-| theHarvester, Hunter.io, LinkedIn | OSINT | Pasiva | No |
-| Análisis PDF + ExifTool | Metadatos | Pasiva | No |
-| Have I Been Pwned | Consulta email | Pasiva | No |
-| recon-ng (Hackertarget) | API / scraping | Pasiva | Mínimo |
-| `dnsenum`, `dig`, `dnsrecon` | Consultas DNS directas | Activa | Sí |
-| `nmap` dns-cache-snoop.nse | UDP/53 al NS | Activa | Sí |
-
-**RA 3.a:** Se ha recopilado información sobre la red y sistemas del objetivo mediante **técnicas pasivas** (fuentes abiertas, DNSDumpster, documentos públicos, Hunter.io) complementadas con técnicas activas DNS para validar y ampliar subdominios y servidores.
-```
+Ya integrada en el informe bajo **§8 → Técnicas pasivas y activas** (tabla + párrafo de cierre). No hace falta citar resultados de aprendizaje (RA) en el texto.
 
 ### A.2 Cierre unificado del §5
 
@@ -358,7 +342,7 @@ Antes de entregar, revisa: portada, índice con enlaces, apartados en páginas s
 
 ## Checklist final antes de entregar
 
-- [ ] Tabla pasivo/activo + RA 3.a en §8
+- [x] Tabla pasivo/activo en §8
 - [ ] Párrafo cierre §5
 - [ ] Captura `dnsrecon -t tld -d grupo-gee`
 - [ ] Captura `dig axfr` (grupo-gee y opcional iberdata)
