@@ -121,10 +121,40 @@ pre, blockquote {
   page-break-inside: avoid;
 }
 
-img {
+/* Capturas: imagen y pie centrados; pie en cursiva */
+figure {
+  margin: 1em auto 1.3em auto;
+  padding: 0;
+  text-align: center;
+  page-break-inside: avoid;
+  break-inside: avoid-page;
+  max-width: 100%;
+}
+
+figure img {
+  display: block;
+  margin: 0 auto;
   max-width: 100%;
   height: auto;
   page-break-inside: avoid;
+}
+
+figcaption {
+  font-style: italic;
+  text-align: center;
+  margin: 0.5em auto 0 auto;
+  padding: 0 0.5em;
+  font-size: 10pt;
+  line-height: 1.35;
+  color: #333;
+}
+
+/* Imágenes sueltas (sin figure), por si Pandoc no envuelve en figure */
+p > img:only-child {
+  display: block;
+  margin: 1em auto;
+  max-width: 100%;
+  height: auto;
 }
 
 @media screen {
