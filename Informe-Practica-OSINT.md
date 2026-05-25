@@ -45,13 +45,8 @@ Herramientas empleadas: `dig`, `dnsenum`, `whois`, `nmap` (script NSE `dns-cache
 | 4 | [Obtención de NS y MX](#apartado-4) |
 | 5 | [Testeo de vulnerabilidades DNS](#apartado-5) |
 | 6 | [Obtención de rangos IP y netnames](#apartado-6) |
+| 7 | [Reconocimiento pasivo complementario OSINT](#apartado-7) |
 | 8 | [Resumen y conclusiones](#apartado-8) |
-
-El [apartado 7](#apartado-7) amplía el reconocimiento con OSINT pasivo complementario (no sustituye a los apartados DNS 1–6).
-
-<a id="criterio-ra-3a"></a>
-
-**Criterio de evaluación RA 3.a:** *Se ha recopilado información sobre la red y sistemas del objetivo mediante técnicas pasivas.* Su cumplimiento se detalla en el [apartado 8](#apartado-8) (tabla pasivo/activo y conclusiones).
 
 ---
 
@@ -838,7 +833,9 @@ Las técnicas OSINT pasivas **no sustituyen** al reconocimiento DNS, pero **refu
 | **OSINT / metadatos** | Emails (Hunter, theHarvester), PDFs públicos, servidor `greedatos`, perfiles LinkedIn |
 | **Credenciales** | `talento@geelectromedico.com` sin brechas en HIBP |
 
-### Técnicas pasivas y activas (criterio RA 3.a)
+### Técnicas pasivas y activas
+
+Se ha recopilado información sobre la red y sistemas del objetivo mediante **técnicas pasivas** (fuentes abiertas, DNSDumpster, documentos públicos, Hunter.io) complementadas con técnicas activas DNS para validar subdominios y servidores.
 
 | Técnica | Herramienta / método | Tipo | Deja rastro en el objetivo |
 |---------|----------------------|------|----------------------------|
@@ -850,7 +847,6 @@ Las técnicas OSINT pasivas **no sustituyen** al reconocimiento DNS, pero **refu
 | `dnsenum`, `dig`, `dnsrecon` | Consultas DNS directas | Activa | Sí |
 | `nmap` dns-cache-snoop.nse | UDP/53 al NS | Activa | Sí |
 
-**RA 3.a** (véase [criterio en la introducción](#criterio-ra-3a)): Se ha recopilado información sobre la red y sistemas del objetivo mediante **técnicas pasivas** (fuentes abiertas, DNSDumpster, documentos públicos, Hunter.io) complementadas con técnicas activas DNS para validar subdominios y servidores.
 
 ### Conclusiones
 
@@ -873,7 +869,7 @@ En línea con el [apartado 8](#apartado-8) de este informe, GEE debe tratarse co
 - **Metadatos en PDFs** con rutas UNC y nombres de usuario; **39 emails** enumerados en Hunter.io para campañas dirigidas.
 - Documentos de **seguridad de la información** (ENS, política SGI) expuestos o indexados, útiles para entender el marco de cumplimiento del grupo.
 
-### Estrategia recomendada para siguientes fases
+### Estrategia recomendada para las siguientes fases
 
 1. **Escaneo de puertos** (`nmap`) sobre 82.159.201.0/24 y subdominios críticos detectados.
 2. **Enumeración por certificados** (`ct-exposer` o crt.sh) para descubrir subdominios adicionales.
