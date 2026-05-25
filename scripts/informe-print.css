@@ -1,7 +1,52 @@
-/* Impresión: título + índice Pandoc + Introducción; apartados 1–8 en página nueva */
+/* Impresión: cabecera/pie en todas las páginas; apartados 1–8 en página nueva */
 @page {
   size: A4;
-  margin: 2cm 2.2cm 2.2cm 2cm;
+  /* Márgenes ampliados para cabecera fija y número de página */
+  margin: 2.6cm 2cm 2.4cm 2cm;
+
+  @bottom-center {
+    content: counter(page);
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+    font-size: 10pt;
+    color: #333;
+    vertical-align: top;
+    padding-top: 0.35em;
+  }
+}
+
+/* Cabecera en todas las páginas al imprimir (Edge headless) */
+.pdf-print-header {
+  display: none;
+}
+
+@media print {
+  .pdf-print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    padding: 0.35cm 0 0.25cm 0;
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+    font-size: 9pt;
+    color: #333;
+    background: #fff;
+    border-bottom: 0.5pt solid #ccc;
+    box-sizing: border-box;
+  }
+
+  .pdf-print-header .hdr-left {
+    text-align: left;
+    flex: 1;
+  }
+
+  .pdf-print-header .hdr-right {
+    text-align: right;
+    flex: 1;
+  }
 }
 
 body {
@@ -28,12 +73,12 @@ header#title-block-header p {
   margin: 0.2em 0;
 }
 
-/* Índice automático (Pandoc --toc), justo después del título como antes */
+/* Índice automático (Pandoc --toc); salto de página tras el índice */
 #TOC {
   page-break-before: avoid;
   break-before: avoid-page;
-  page-break-after: avoid;
-  break-after: avoid-page;
+  page-break-after: always;
+  break-after: page;
   margin: 0.6em 0 1em 0;
 }
 

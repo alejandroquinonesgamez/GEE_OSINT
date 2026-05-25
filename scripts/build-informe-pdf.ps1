@@ -34,6 +34,19 @@ if (-not (Test-Path $pandoc)) {
     -V lang=es `
     --metadata title="Reconocimiento DNS de una empresa - Grupo GEE"
 
+# Cabecera fija en impresión (respaldo si @top-left/@top-right no se aplican)
+$html = Get-Content -Path $HtmlOut -Raw -Encoding UTF8
+$printHeader = @'
+<div class="pdf-print-header" aria-hidden="true">
+  <span class="hdr-left">Alejandro Quiñones Gámez</span>
+  <span class="hdr-right">Reconocimiento DNS de una empresa</span>
+</div>
+'@
+if ($html -notmatch 'pdf-print-header') {
+    $html = $html -replace '(<body[^>]*>)', "`$1`n$printHeader"
+    $html | Set-Content -Path $HtmlOut -Encoding UTF8
+}
+
 $edge = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
 if (-not (Test-Path $edge)) { $edge = "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe" }
 if (-not (Test-Path $edge)) { throw "Microsoft Edge no encontrado" }
@@ -66,5 +79,6 @@ try {
 
 $mb = [math]::Round((Get-Item $pdfFull).Length / 1MB, 2)
 Write-Host "PDF generado: $pdfFull ($mb MB)"
-Write-Host "  - Indice Pandoc tras el titulo (--toc)"
+Write-Host "  - Cabecera/pie en todas las paginas (CSS @page)"
+Write-Host "  - Salto de pagina tras el indice"
 Write-Host "  - Apartados 1-8: nueva pagina (sin hoja en blanco entre ellos)"
