@@ -89,7 +89,35 @@ h3 {
   page-break-after: avoid;
 }
 
-table, pre, blockquote {
+/* Tablas: bordes visibles y contenido centrado */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0 1em 0;
+  page-break-inside: avoid;
+  font-size: 10pt;
+}
+
+thead th,
+tbody th,
+td {
+  border: 1px solid #333;
+  padding: 0.4em 0.5em;
+  text-align: center;
+  vertical-align: middle;
+}
+
+thead th,
+tbody th {
+  background-color: #f2f2f2;
+  font-weight: 600;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+pre, blockquote {
   page-break-inside: avoid;
 }
 
